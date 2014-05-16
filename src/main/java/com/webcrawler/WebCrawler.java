@@ -7,11 +7,9 @@ import org.webdriver.domain.WebPage;
 
 public interface WebCrawler {
 
-	public boolean start(String seed_url);
-	
-	public boolean end();
-	
-	public List<WebPage> getSemanticPages();
+	public void start();
+		
+	public List<WebPage> getWebPages();
 	
 	public boolean getInfo();//#states visit, #semantic states, time, log
 	

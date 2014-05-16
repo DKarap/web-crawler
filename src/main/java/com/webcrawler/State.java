@@ -1,14 +1,11 @@
 package com.webcrawler;
 
-import org.webdriver.domain.WebPage;
+import org.webdriver.domain.Link;
 
 public interface State {
 
 	public boolean hasNext();
 	
-	public State next();
+	public Link next();
 	
-	public boolean isSemantic();
-
-	public WebPage getWebPage();
 }

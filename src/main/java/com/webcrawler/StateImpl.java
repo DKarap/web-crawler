@@ -1,17 +1,18 @@
 package com.webcrawler;
 
+import org.webdriver.domain.Link;
 import org.webdriver.domain.WebPage;
 
 public class StateImpl implements State{
 
 	private WebPage webPage;
-	private String url;
 	
 	
 	
-	public StateImpl(String url) {
+
+	public StateImpl(WebPage webPage) {
 		super();
-		this.url = url;
+		this.webPage = webPage;
 	}
 
 	@Override
@@ -20,21 +21,18 @@ public class StateImpl implements State{
 	}
 
 	@Override
-	public State next() {
-		// TODO Auto-generated method stub
-		return null;
+	public Link next() {
+		return webPage.getLinks().remove(0);
 	}
 
-	@Override
-	public boolean isSemantic() {
-		// TODO Auto-generated method stub
-		return false;
-	}
 
-	@Override
 	public WebPage getWebPage() {
-		// TODO Auto-generated method stub
-		return null;
+		return webPage;
 	}
 
+	public void setWebPage(WebPage webPage) {
+		this.webPage = webPage;
+	}
+
+	
 }
