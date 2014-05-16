@@ -10,13 +10,16 @@ import org.webdriver.core.Driver;
 import org.webdriver.core.GhostDriver;
 
 import com.google.common.collect.ImmutableList;
+import com.webcrawler.domain.CrawlerSetUp;
 
 public class CrawlerTest {
 
 	@Test
 	public void test() throws Exception {
+		int max_number_states_to_visit = 10;
+		int max_execution_time_seconds = 1000;
 		int max_depth = 1;
-		String seed_url = "http://www.took.nl/beta/"; 
+		String seed_url = "http://wise-guys.nl/"; 
 		final String CONFIG_FILE_GHOSTDRIVER = "./config/ghostdriver/config.ini";
 		Driver ghostDriver = new GhostDriver(CONFIG_FILE_GHOSTDRIVER);
 
@@ -35,8 +38,11 @@ public class CrawlerTest {
 				.addAll(new ArrayList<String>())
 	            .build();
 		
-	
-		WebCrawlerImpl WebCrawlerImpl = new WebCrawlerImpl(max_depth, seed_url, ghostDriver, FRAME_TAG_NAME_LIST, LINK_TAG_NAME_LIST, BLACK_LIST_URL, BLACK_LIST_ANCHOR_TEXT);
+		CrawlerSetUp crawlerSetUp = new CrawlerSetUp(seed_url, max_depth, max_number_states_to_visit, max_execution_time_seconds, FRAME_TAG_NAME_LIST, LINK_TAG_NAME_LIST, BLACK_LIST_URL, BLACK_LIST_ANCHOR_TEXT); 
+		
+		
+		
+		WebCrawlerImpl WebCrawlerImpl = new WebCrawlerImpl(crawlerSetUp, ghostDriver);
 		WebCrawlerImpl.start();
 		
 		

@@ -9,17 +9,12 @@ import org.webdriver.domain.FindElementBy;
 import org.webdriver.domain.Link;
 import org.webdriver.domain.WebPage;
 
-import com.google.common.collect.ImmutableList;
+import com.webcrawler.domain.CrawlerSetUp;
 
 public class WebCrawlerImpl implements WebCrawler{
 	
-	private final String seed_url;
-	private final int max_depth;
+	private final CrawlerSetUp crawlerSetUp;
 	private final Driver driver;
-	private final ImmutableList<String> FRAME_TAG_NAME_LIST;
-	private final ImmutableList<String> LINK_TAG_NAME_LIST;
-	private final ImmutableList<String> BLACK_LIST_URL; //
-	private final ImmutableList<String> BLACK_LIST_ANCHOR_TEXT; //contac us
 
 	
 	private StateImpl[] last_state_per_depth_level;
@@ -30,18 +25,12 @@ public class WebCrawlerImpl implements WebCrawler{
 	private List<Link> linkWeFollowHistoryList;
 	private List<String> urlListThatWeVisit;
 	
-	public WebCrawlerImpl(int max_depth, String seed_url, Driver driver,ImmutableList<String> FRAME_TAG_NAME_LIST, ImmutableList<String> LINK_TAG_NAME_LIST, 
-			ImmutableList<String> BLACK_LIST_URL, ImmutableList<String> BLACK_LIST_ANCHOR_TEXT) {
+	public WebCrawlerImpl(CrawlerSetUp crawlerSetUp, Driver driver) {
 		super();
-		this.seed_url = seed_url;
-		this.max_depth = max_depth;
-		this.last_state_per_depth_level = new StateImpl[max_depth+2];
+		this.crawlerSetUp = crawlerSetUp;
+		this.last_state_per_depth_level = new StateImpl[crawlerSetUp.getMax_depth()+2];
 		this.driver = driver;
 		this.log_msg = new StringBuilder();
-		this.FRAME_TAG_NAME_LIST = FRAME_TAG_NAME_LIST;
-		this.LINK_TAG_NAME_LIST = LINK_TAG_NAME_LIST;
-		this.BLACK_LIST_URL = BLACK_LIST_URL;
-		this.BLACK_LIST_ANCHOR_TEXT = BLACK_LIST_ANCHOR_TEXT;
 		this.outputWebPageList = new ArrayList<WebPage>();
 		this.linkWeFollowHistoryList = new ArrayList<Link>();
 		this.urlListThatWeVisit = new ArrayList<String>(); 
@@ -54,16 +43,21 @@ public class WebCrawlerImpl implements WebCrawler{
 	@Override
 	public void start() {
 		//start crawling by going to the initial seed page
-		boolean success = goToNextState(null, this.seed_url);
+		boolean success = goToNextState(null, crawlerSetUp.getSeed_url());
 		while(true){
 			//deep first 
-			while(current_depth <= max_depth && current_state!=null && current_state.hasNext()){
+			while(current_depth <= crawlerSetUp.getMax_depth() && current_state!=null && current_state.hasNext()){
+				System.out.println("Current State:"+this.current_state.getWebPage().getUrl()+"\tdepth:"+this.current_depth);
 				Link linkToFollow = current_state.next();
 				success = goToNextState(linkToFollow, null);
 				linkWeFollowHistoryList.add(linkToFollow);
 				if(success){
 					current_depth++;
 					last_state_per_depth_level[current_depth] = current_state;
+					System.out.println("\tgot to  State:"+this.current_state.getWebPage().getUrl()+"\tdepth:"+this.current_depth);
+				}else{
+					System.out.println("\tFail to go to  State:"+linkToFollow.getText()+"\t"+linkToFollow.getAttributesMap().toString()+"\tlogs:"+getLog());
+
 				}
 			}
 			
@@ -102,17 +96,17 @@ public class WebCrawlerImpl implements WebCrawler{
 	
 	
 	private boolean processCurrentState(Link linkToThisState) throws WebDriverException{
-		WebPage currentWebPage = driver.getCurrentWebPage(0, FRAME_TAG_NAME_LIST, LINK_TAG_NAME_LIST);
+		WebPage currentWebPage = driver.getCurrentWebPage(0, crawlerSetUp.getFRAME_TAG_NAME_LIST(), crawlerSetUp.getLINK_TAG_NAME_LIST());
 		currentWebPage.addLinkToThisWebPage(linkToThisState);
 		
-		//1. check if belongs to the black list urls
-		if(BLACK_LIST_URL.contains(currentWebPage.getUrl()))
+		//1. check if belongs to the black list urls or we already visit that page
+		if(crawlerSetUp.getBLACK_LIST_URL().contains(currentWebPage.getUrl()) || this.urlListThatWeVisit.contains(currentWebPage.getUrl()))
 			return false;
 		
 		//2. filter the outlinks of this state based on the previous selected links and a static stop anchor text list
 		List<Link> state_links = currentWebPage.getLinks();
 		state_links = filterPreviousFollowedLinks(state_links);
-		if(!BLACK_LIST_ANCHOR_TEXT.isEmpty())
+		if(!crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT().isEmpty())
 			state_links = filterStopLinksBasedOnStopAnchorTextList(state_links);
 		//3. TODO if config.keepTopNLinks from each state is set up then keep only the top N links
 		currentWebPage.setLinks(state_links);
@@ -127,6 +121,9 @@ public class WebCrawlerImpl implements WebCrawler{
 		
 		//8. set current state to current web page
 		current_state = new StateImpl(currentWebPage);
+		//9. save url of current state in order not to visit again
+		urlListThatWeVisit.add(currentWebPage.getUrl());
+		
 		return true;
 	}
 	
@@ -137,7 +134,7 @@ public class WebCrawlerImpl implements WebCrawler{
 			if(!linkWeFollowHistoryList.contains(link))
 				filteredLinks.add(link);
 			else
-				System.out.println("link was followed before:"+link.getText());
+				System.out.println("link was followed before:"+link.getAttributesMap().toString());
 		}
 		return filteredLinks;
 	}
@@ -147,13 +144,16 @@ public class WebCrawlerImpl implements WebCrawler{
 		List<Link> filteredLinks = new ArrayList<Link>();
 		for(Link link:links){
 			if(link.getText() != null && !link.getText().isEmpty()){
-				if(!this.BLACK_LIST_ANCHOR_TEXT.contains(link.getText().toLowerCase()))
+				if(!crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT().contains(link.getText().toLowerCase()))
 					filteredLinks.add(link);
 			}
 		}
 		return filteredLinks;
 	}
 
+	public String getLog(){
+		return this.log_msg.toString();
+	}
 	
 	@Override
 	public List<WebPage> getWebPages() {
