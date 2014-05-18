@@ -85,7 +85,9 @@ public class WebCrawlerImpl implements WebCrawler{
 			}
 			//process current state if successfully manage to go there  
 			if(success){
-				success = processCurrentState(link);
+				WebPage currentWebPage = driver.getCurrentWebPage(0, crawlerSetUp.getFRAME_TAG_NAME_LIST(), crawlerSetUp.getLINK_TAG_NAME_LIST());
+				currentWebPage.addLinkToThisWebPage(link);
+				success = processCurrentState(currentWebPage);
 			}
 		}catch(WebDriverException e){
 			log_msg.append(e.getMessage()+"\n");
@@ -95,9 +97,7 @@ public class WebCrawlerImpl implements WebCrawler{
 	}
 	
 	
-	private boolean processCurrentState(Link linkToThisState) throws WebDriverException{
-		WebPage currentWebPage = driver.getCurrentWebPage(0, crawlerSetUp.getFRAME_TAG_NAME_LIST(), crawlerSetUp.getLINK_TAG_NAME_LIST());
-		currentWebPage.addLinkToThisWebPage(linkToThisState);
+	private boolean processCurrentState(WebPage currentWebPage) {
 		
 		//1. check if belongs to the black list urls or we already visit that page
 		if(crawlerSetUp.getBLACK_LIST_URL().contains(currentWebPage.getUrl()) || this.urlListThatWeVisit.contains(currentWebPage.getUrl()))
@@ -165,8 +165,7 @@ public class WebCrawlerImpl implements WebCrawler{
 		return false;
 	}
 	@Override
-	public boolean getConfig() {
-		// TODO Auto-generated method stub
-		return false;
+	public CrawlerSetUp getConfig() {
+		return crawlerSetUp;
 	}	
 }

@@ -8,6 +8,7 @@ import java.util.Arrays;
 import org.junit.Test;
 import org.webdriver.core.Driver;
 import org.webdriver.core.GhostDriver;
+import org.webdriver.domain.WebPage;
 
 import com.google.common.collect.ImmutableList;
 import com.webcrawler.domain.CrawlerSetUp;
@@ -45,6 +46,8 @@ public class CrawlerTest {
 		WebCrawlerImpl WebCrawlerImpl = new WebCrawlerImpl(crawlerSetUp, ghostDriver);
 		WebCrawlerImpl.start();
 		
+		for(WebPage web:WebCrawlerImpl.getWebPages())
+			System.out.println(web.getUrl());
 		
 		
 		
