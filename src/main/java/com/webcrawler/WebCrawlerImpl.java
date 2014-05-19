@@ -50,21 +50,21 @@ public class WebCrawlerImpl implements WebCrawler{
 		//start crawling by going to the initial seed page
 		boolean success = goToNextState(null, crawlerSetUp.getSeed_url());
 		last_state_per_depth_level[current_depth] = current_state;
-
+		System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tsuccess:"+success);
+		
 		while(true){
 			//deep first 
-			while(current_depth <= crawlerSetUp.getMax_depth() && current_state!=null && current_state.hasNext()){
-				System.out.println("Current State:"+this.current_state.getWebPage().getUrl()+"\tdepth:"+this.current_depth);
+			while(current_depth <= crawlerSetUp.getMax_depth() && current_state!=null && current_state.hasNext() &&
+					urlSetThatWeVisit.size() <= this.crawlerSetUp.getMax_number_states_to_visit()){
 				Link linkToFollow = current_state.next();
 				success = goToNextState(linkToFollow, null);
 				linkWeFollowHistoryList.add(linkToFollow);
 				if(success){
 					current_depth++;
 					last_state_per_depth_level[current_depth] = current_state;
-					System.out.println("\tgot to  State:"+this.current_state.getWebPage().getUrl()+"\tdepth:"+this.current_depth+"\t"+linkToFollow.getText());
-				}else{
-					System.out.println("\tFail to go to  State:"+linkToFollow.getText()+"\t"+linkToFollow.getAttributesMap().toString()+"\tlogs:"+this.driver.getLog());
-				}
+					System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tsuccess:"+success);
+				}else
+					this.crawlerInfo.appendLog("\tFail to go to  State:"+linkToFollow.getText()+"\t"+linkToFollow.getAttributesMap().toString()+"\tlogs:"+this.driver.getLog());
 			}
 			
 			//go back one depth level, except if we are on the seed url(depth = 0)
@@ -75,8 +75,8 @@ public class WebCrawlerImpl implements WebCrawler{
 				break;
 			else{
 				success = goToNextState(null, current_state.getWebPage().getUrl());
-			}
-				
+				System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tsuccess:"+success);
+			}	
 		}
 		this.crawlerInfo.appendLog(this.driver.getLog());
 		this.driver.quit();

@@ -17,9 +17,9 @@ public class CrawlerTest {
 
 	@Test
 	public void test() throws Exception {
-		int max_number_states_to_visit = 10;
+		int max_number_states_to_visit = 6;
 		int max_execution_time_seconds = 1000;
-		int max_depth = 1;
+		int max_depth = 6;
 		String seed_url = "http://didata.taleo.net/careersection/10200/joblist.ftl"; 
 		final String CONFIG_FILE_GHOSTDRIVER = "./config/ghostdriver/config.ini";
 		Driver ghostDriver = new GhostDriver(CONFIG_FILE_GHOSTDRIVER);
