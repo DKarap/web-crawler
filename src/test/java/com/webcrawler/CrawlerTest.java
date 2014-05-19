@@ -20,7 +20,7 @@ public class CrawlerTest {
 		int max_number_states_to_visit = 10;
 		int max_execution_time_seconds = 1000;
 		int max_depth = 1;
-		String seed_url = "http://wise-guys.nl/"; 
+		String seed_url = "http://didata.taleo.net/careersection/10200/joblist.ftl"; 
 		final String CONFIG_FILE_GHOSTDRIVER = "./config/ghostdriver/config.ini";
 		Driver ghostDriver = new GhostDriver(CONFIG_FILE_GHOSTDRIVER);
 
@@ -46,9 +46,13 @@ public class CrawlerTest {
 		WebCrawlerImpl WebCrawlerImpl = new WebCrawlerImpl(crawlerSetUp, ghostDriver);
 		WebCrawlerImpl.start();
 		
+		System.out.println("#Pages crawled:");
 		for(WebPage web:WebCrawlerImpl.getWebPages())
-			System.out.println(web.getUrl());
-		
+			System.out.println("\t"+web.getUrl());
+		System.out.println("#Crawler info:");
+		System.out.println("\t"+WebCrawlerImpl.getInfo().toString());
+		System.out.println("#Crawler setup:");
+		System.out.println("\t"+WebCrawlerImpl.getConfig().toString());
 		
 		
 		fail("Not yet implemented");

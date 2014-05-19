@@ -70,5 +70,19 @@ public class CrawlerSetUp {
 	public ImmutableList<String> getBLACK_LIST_ANCHOR_TEXT() {
 		return BLACK_LIST_ANCHOR_TEXT;
 	}
+
+
+	@Override
+	public String toString() {
+		return "CrawlerSetUp [seed_url=" + seed_url + ", max_depth="
+				+ max_depth + ", max_number_states_to_visit="
+				+ max_number_states_to_visit + ", max_execution_time_seconds="
+				+ max_execution_time_seconds + ", FRAME_TAG_NAME_LIST="
+				+ FRAME_TAG_NAME_LIST + ", LINK_TAG_NAME_LIST="
+				+ LINK_TAG_NAME_LIST + ", BLACK_LIST_URL=" + BLACK_LIST_URL
+				+ ", BLACK_LIST_ANCHOR_TEXT=" + BLACK_LIST_ANCHOR_TEXT + "]";
+	}
+	
+	
 	
 }

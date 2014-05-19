@@ -1,7 +1,9 @@
 package com.webcrawler;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.openqa.selenium.WebDriverException;
 import org.webdriver.core.Driver;
@@ -9,6 +11,7 @@ import org.webdriver.domain.FindElementBy;
 import org.webdriver.domain.Link;
 import org.webdriver.domain.WebPage;
 
+import com.webcrawler.domain.CrawlerInfo;
 import com.webcrawler.domain.CrawlerSetUp;
 
 public class WebCrawlerImpl implements WebCrawler{
@@ -16,24 +19,27 @@ public class WebCrawlerImpl implements WebCrawler{
 	private final CrawlerSetUp crawlerSetUp;
 	private final Driver driver;
 
+	private CrawlerInfo crawlerInfo; 
 	
 	private StateImpl[] last_state_per_depth_level;
 	private StateImpl current_state;
 	private int current_depth;
-	private StringBuilder log_msg;
 	private List<WebPage> outputWebPageList;
 	private List<Link> linkWeFollowHistoryList;
-	private List<String> urlListThatWeVisit;
+	private Set<String> urlSetThatWeVisit;
+	
+	
 	
 	public WebCrawlerImpl(CrawlerSetUp crawlerSetUp, Driver driver) {
 		super();
 		this.crawlerSetUp = crawlerSetUp;
 		this.last_state_per_depth_level = new StateImpl[crawlerSetUp.getMax_depth()+2];
 		this.driver = driver;
-		this.log_msg = new StringBuilder();
 		this.outputWebPageList = new ArrayList<WebPage>();
 		this.linkWeFollowHistoryList = new ArrayList<Link>();
-		this.urlListThatWeVisit = new ArrayList<String>(); 
+		this.urlSetThatWeVisit = new HashSet<String>();
+		
+		this.crawlerInfo = new CrawlerInfo();
 	}
 	
 	
@@ -56,8 +62,7 @@ public class WebCrawlerImpl implements WebCrawler{
 					last_state_per_depth_level[current_depth] = current_state;
 					System.out.println("\tgot to  State:"+this.current_state.getWebPage().getUrl()+"\tdepth:"+this.current_depth);
 				}else{
-					System.out.println("\tFail to go to  State:"+linkToFollow.getText()+"\t"+linkToFollow.getAttributesMap().toString()+"\tlogs:"+getLog());
-
+					System.out.println("\tFail to go to  State:"+linkToFollow.getText()+"\t"+linkToFollow.getAttributesMap().toString()+"\tlogs:"+crawlerInfo.getLog());
 				}
 			}
 			
@@ -87,10 +92,12 @@ public class WebCrawlerImpl implements WebCrawler{
 			if(success){
 				WebPage currentWebPage = driver.getCurrentWebPage(0, crawlerSetUp.getFRAME_TAG_NAME_LIST(), crawlerSetUp.getLINK_TAG_NAME_LIST());
 				currentWebPage.addLinkToThisWebPage(link);
+				System.out.println("currentWebPage size links:"+currentWebPage.getLinks().size());
 				success = processCurrentState(currentWebPage);
 			}
 		}catch(WebDriverException e){
-			log_msg.append(e.getMessage()+"\n");
+			crawlerInfo.appendLog(e.getMessage()+"\n");
+			System.out.println(e.getMessage());
 			return false;
 		}
 		return success;
@@ -100,7 +107,7 @@ public class WebCrawlerImpl implements WebCrawler{
 	private boolean processCurrentState(WebPage currentWebPage) {
 		
 		//1. check if belongs to the black list urls or we already visit that page
-		if(crawlerSetUp.getBLACK_LIST_URL().contains(currentWebPage.getUrl()) || this.urlListThatWeVisit.contains(currentWebPage.getUrl()))
+		if(crawlerSetUp.getBLACK_LIST_URL().contains(currentWebPage.getUrl()) || this.urlSetThatWeVisit.contains(currentWebPage.getUrl()))
 			return false;
 		
 		//2. filter the outlinks of this state based on the previous selected links and a static stop anchor text list
@@ -116,14 +123,18 @@ public class WebCrawlerImpl implements WebCrawler{
 		//5. TODO classify web page's links, if there is link classifier
 		//6. TODO classify web page as semantic or not, if there is a page classifier
 		//7. save current web page if is semantic
-		if(page_is_semantic_page)
+		if(page_is_semantic_page){
 			outputWebPageList.add(currentWebPage);
+			this.crawlerInfo.increaseByOneSemantics();
+		}
 		
 		//8. set current state to current web page
 		current_state = new StateImpl(currentWebPage);
 		//9. save url of current state in order not to visit again
-		urlListThatWeVisit.add(currentWebPage.getUrl());
-		
+		urlSetThatWeVisit.add(currentWebPage.getUrl());
+		//10.increase number of unique visits
+		this.crawlerInfo.increaseByOneUniquePages();
+
 		return true;
 	}
 	
@@ -151,19 +162,18 @@ public class WebCrawlerImpl implements WebCrawler{
 		return filteredLinks;
 	}
 
-	public String getLog(){
-		return this.log_msg.toString();
-	}
 	
 	@Override
 	public List<WebPage> getWebPages() {
 		return outputWebPageList;
 	}
+	
 	@Override
-	public boolean getInfo() {
-		// TODO Auto-generated method stub
-		return false;
+	public CrawlerInfo getInfo() {
+		this.crawlerInfo.appendLog(this.driver.getLog());
+		return this.crawlerInfo;
 	}
+	
 	@Override
 	public CrawlerSetUp getConfig() {
 		return crawlerSetUp;
