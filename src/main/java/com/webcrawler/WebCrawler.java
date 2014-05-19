@@ -12,7 +12,7 @@ public interface WebCrawler {
 
 	public void start();
 		
-	public List<WebPage> getWebPages();
+	public List<WebPage> getSemanticWebPages();
 	
 	public CrawlerInfo getInfo();//#states visit, #semantic states, time, log
 	

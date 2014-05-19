@@ -47,7 +47,7 @@ public class CrawlerTest {
 		WebCrawlerImpl.start();
 		
 		System.out.println("#Pages crawled:");
-		for(WebPage web:WebCrawlerImpl.getWebPages())
+		for(WebPage web:WebCrawlerImpl.getSemanticWebPages())
 			System.out.println("\t"+web.getUrl());
 		System.out.println("#Crawler info:");
 		System.out.println("\t"+WebCrawlerImpl.getInfo().toString());

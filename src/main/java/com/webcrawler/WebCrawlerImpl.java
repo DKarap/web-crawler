@@ -24,7 +24,7 @@ public class WebCrawlerImpl implements WebCrawler{
 	private StateImpl[] last_state_per_depth_level;
 	private StateImpl current_state;
 	private int current_depth;
-	private List<WebPage> outputWebPageList;
+	private List<WebPage> semanticWebPageList;
 	private List<Link> linkWeFollowHistoryList;
 	private Set<String> urlSetThatWeVisit;
 	
@@ -35,7 +35,7 @@ public class WebCrawlerImpl implements WebCrawler{
 		this.crawlerSetUp = crawlerSetUp;
 		this.last_state_per_depth_level = new StateImpl[crawlerSetUp.getMax_depth()+2];
 		this.driver = driver;
-		this.outputWebPageList = new ArrayList<WebPage>();
+		this.semanticWebPageList = new ArrayList<WebPage>();
 		this.linkWeFollowHistoryList = new ArrayList<Link>();
 		this.urlSetThatWeVisit = new HashSet<String>();
 		
@@ -70,9 +70,12 @@ public class WebCrawlerImpl implements WebCrawler{
 			current_depth = current_depth == 0 ? 0 : current_depth - 1;
 			current_state = last_state_per_depth_level[current_depth];
 			//check stopping criteria
-			if(current_depth == 0 && (current_state == null || !current_state.hasNext()))
+			if( (current_depth == 0 && (current_state == null || !current_state.hasNext())) || 
+					urlSetThatWeVisit.size() >= this.crawlerSetUp.getMax_number_states_to_visit() )
 				break;
 		}
+		this.crawlerInfo.appendLog(this.driver.getLog());
+		this.driver.quit();
 	}
 	
 	
@@ -84,7 +87,7 @@ public class WebCrawlerImpl implements WebCrawler{
 				success = driver.get(url);
 			else if(link !=null){
 				success = driver.clickElement(FindElementBy.xpath, link.getXpath(), false);
-//				TODO if fail try with the relative xpath!!!
+//				TODO if fail try with the id xpath!!!
 //				if(!success)
 //					success = driver.clickElement(FindElementBy.xpath, link.getRelativeXpath(), false);
 			}
@@ -97,7 +100,6 @@ public class WebCrawlerImpl implements WebCrawler{
 			}
 		}catch(WebDriverException e){
 			crawlerInfo.appendLog(e.getMessage()+"\n");
-			System.out.println(e.getMessage());
 			return false;
 		}
 		return success;
@@ -124,7 +126,7 @@ public class WebCrawlerImpl implements WebCrawler{
 		//6. TODO classify web page as semantic or not, if there is a page classifier
 		//7. save current web page if is semantic
 		if(page_is_semantic_page){
-			outputWebPageList.add(currentWebPage);
+			semanticWebPageList.add(currentWebPage);
 			this.crawlerInfo.increaseByOneSemantics();
 		}
 		
@@ -164,13 +166,12 @@ public class WebCrawlerImpl implements WebCrawler{
 
 	
 	@Override
-	public List<WebPage> getWebPages() {
-		return outputWebPageList;
+	public List<WebPage> getSemanticWebPages() {
+		return semanticWebPageList;
 	}
 	
 	@Override
 	public CrawlerInfo getInfo() {
-		this.crawlerInfo.appendLog(this.driver.getLog());
 		return this.crawlerInfo;
 	}
 	
