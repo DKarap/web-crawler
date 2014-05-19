@@ -24,9 +24,9 @@ public class WebCrawlerImpl implements WebCrawler{
 	private StateImpl[] last_state_per_depth_level;
 	private StateImpl current_state;
 	private int current_depth;
-	private List<WebPage> semanticWebPageList;
-	private List<Link> linkWeFollowHistoryList;
-	private Set<String> urlSetThatWeVisit;
+	private List<WebPage> semanticWebPageList;//the final output
+	private List<Link> linkWeFollowHistoryList;//in order not to follow the same links
+	private Set<String> urlSetThatWeVisit; //in order not to visit same pages..
 	
 	
 	
@@ -38,7 +38,6 @@ public class WebCrawlerImpl implements WebCrawler{
 		this.semanticWebPageList = new ArrayList<WebPage>();
 		this.linkWeFollowHistoryList = new ArrayList<Link>();
 		this.urlSetThatWeVisit = new HashSet<String>();
-		
 		this.crawlerInfo = new CrawlerInfo();
 	}
 	
@@ -50,6 +49,8 @@ public class WebCrawlerImpl implements WebCrawler{
 	public void start() {
 		//start crawling by going to the initial seed page
 		boolean success = goToNextState(null, crawlerSetUp.getSeed_url());
+		last_state_per_depth_level[current_depth] = current_state;
+
 		while(true){
 			//deep first 
 			while(current_depth <= crawlerSetUp.getMax_depth() && current_state!=null && current_state.hasNext()){
@@ -60,9 +61,9 @@ public class WebCrawlerImpl implements WebCrawler{
 				if(success){
 					current_depth++;
 					last_state_per_depth_level[current_depth] = current_state;
-					System.out.println("\tgot to  State:"+this.current_state.getWebPage().getUrl()+"\tdepth:"+this.current_depth);
+					System.out.println("\tgot to  State:"+this.current_state.getWebPage().getUrl()+"\tdepth:"+this.current_depth+"\t"+linkToFollow.getText());
 				}else{
-					System.out.println("\tFail to go to  State:"+linkToFollow.getText()+"\t"+linkToFollow.getAttributesMap().toString()+"\tlogs:"+crawlerInfo.getLog());
+					System.out.println("\tFail to go to  State:"+linkToFollow.getText()+"\t"+linkToFollow.getAttributesMap().toString()+"\tlogs:"+this.driver.getLog());
 				}
 			}
 			
@@ -70,9 +71,12 @@ public class WebCrawlerImpl implements WebCrawler{
 			current_depth = current_depth == 0 ? 0 : current_depth - 1;
 			current_state = last_state_per_depth_level[current_depth];
 			//check stopping criteria
-			if( (current_depth == 0 && (current_state == null || !current_state.hasNext())) || 
-					urlSetThatWeVisit.size() >= this.crawlerSetUp.getMax_number_states_to_visit() )
+			if((current_depth == 0 && (current_state == null || !current_state.hasNext())) || urlSetThatWeVisit.size() >= this.crawlerSetUp.getMax_number_states_to_visit())
 				break;
+			else{
+				success = goToNextState(null, current_state.getWebPage().getUrl());
+			}
+				
 		}
 		this.crawlerInfo.appendLog(this.driver.getLog());
 		this.driver.quit();
@@ -83,8 +87,9 @@ public class WebCrawlerImpl implements WebCrawler{
 		boolean success = true;
 		try{
 			//try to go to new state via web driver
-			if(url != null)
+			if(url != null){
 				success = driver.get(url);
+			}
 			else if(link !=null){
 				success = driver.clickElement(FindElementBy.xpath, link.getXpath(), false);
 //				TODO if fail try with the id xpath!!!
@@ -95,8 +100,7 @@ public class WebCrawlerImpl implements WebCrawler{
 			if(success){
 				WebPage currentWebPage = driver.getCurrentWebPage(0, crawlerSetUp.getFRAME_TAG_NAME_LIST(), crawlerSetUp.getLINK_TAG_NAME_LIST());
 				currentWebPage.addLinkToThisWebPage(link);
-				System.out.println("currentWebPage size links:"+currentWebPage.getLinks().size());
-				success = processCurrentState(currentWebPage);
+				processCurrentState(currentWebPage);
 			}
 		}catch(WebDriverException e){
 			crawlerInfo.appendLog(e.getMessage()+"\n");
@@ -106,11 +110,8 @@ public class WebCrawlerImpl implements WebCrawler{
 	}
 	
 	
-	private boolean processCurrentState(WebPage currentWebPage) {
+	private void processCurrentState(WebPage currentWebPage) {
 		
-		//1. check if belongs to the black list urls or we already visit that page
-		if(crawlerSetUp.getBLACK_LIST_URL().contains(currentWebPage.getUrl()) || this.urlSetThatWeVisit.contains(currentWebPage.getUrl()))
-			return false;
 		
 		//2. filter the outlinks of this state based on the previous selected links and a static stop anchor text list
 		List<Link> state_links = currentWebPage.getLinks();
@@ -136,8 +137,6 @@ public class WebCrawlerImpl implements WebCrawler{
 		urlSetThatWeVisit.add(currentWebPage.getUrl());
 		//10.increase number of unique visits
 		this.crawlerInfo.increaseByOneUniquePages();
-
-		return true;
 	}
 	
 	
@@ -146,8 +145,6 @@ public class WebCrawlerImpl implements WebCrawler{
 		for(Link link:links){
 			if(!linkWeFollowHistoryList.contains(link))
 				filteredLinks.add(link);
-			else
-				System.out.println("link was followed before:"+link.getAttributesMap().toString());
 		}
 		return filteredLinks;
 	}
