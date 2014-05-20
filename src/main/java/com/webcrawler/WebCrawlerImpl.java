@@ -25,7 +25,7 @@ public class WebCrawlerImpl implements WebCrawler{
 	private StateImpl current_state;
 	private int current_depth;
 	private List<WebPage> semanticWebPageList;//the final output
-	private List<Link> linkWeFollowHistoryList;//in order not to follow the same links
+	private Set<Link> linkWeFollowHistoryList;//in order not to follow the same links
 	private Set<String> urlSetThatWeVisit; //in order not to visit same pages..
 	
 	
@@ -36,7 +36,7 @@ public class WebCrawlerImpl implements WebCrawler{
 		this.last_state_per_depth_level = new StateImpl[crawlerSetUp.getMax_depth()+2];
 		this.driver = driver;
 		this.semanticWebPageList = new ArrayList<WebPage>();
-		this.linkWeFollowHistoryList = new ArrayList<Link>();
+		this.linkWeFollowHistoryList = new HashSet<Link>();
 		this.urlSetThatWeVisit = new HashSet<String>();
 		this.crawlerInfo = new CrawlerInfo();
 	}
@@ -48,23 +48,25 @@ public class WebCrawlerImpl implements WebCrawler{
 	@Override
 	public void start() {
 		//start crawling by going to the initial seed page
-		boolean success = goToNextState(null, crawlerSetUp.getSeed_url());
+		boolean success = goToNextState(null, crawlerSetUp.getSeed_url(),true);
 		last_state_per_depth_level[current_depth] = current_state;
-		System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tsuccess:"+success);
-		
+		System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNext()+"\tlinkToThis state:"+"\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());
+
 		while(true){
 			//deep first 
 			while(current_depth <= crawlerSetUp.getMax_depth() && current_state!=null && current_state.hasNext() &&
 					urlSetThatWeVisit.size() <= this.crawlerSetUp.getMax_number_states_to_visit()){
 				Link linkToFollow = current_state.next();
-				success = goToNextState(linkToFollow, null);
 				linkWeFollowHistoryList.add(linkToFollow);
+				success = goToNextState(linkToFollow, null,true);
 				if(success){
 					current_depth++;
 					last_state_per_depth_level[current_depth] = current_state;
-					System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tsuccess:"+success);
-				}else
+					System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNext()+"\tlinkToThis state:"+(linkToFollow!=null?linkToFollow.getText():"")+"\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());
+
+				}else{
 					this.crawlerInfo.appendLog("\tFail to go to  State:"+linkToFollow.getText()+"\t"+linkToFollow.getAttributesMap().toString()+"\tlogs:"+this.driver.getLog());
+				}
 			}
 			
 			//go back one depth level, except if we are on the seed url(depth = 0)
@@ -73,17 +75,18 @@ public class WebCrawlerImpl implements WebCrawler{
 			//check stopping criteria
 			if((current_depth == 0 && (current_state == null || !current_state.hasNext())) || urlSetThatWeVisit.size() >= this.crawlerSetUp.getMax_number_states_to_visit())
 				break;
-			else{
-				success = goToNextState(null, current_state.getWebPage().getUrl());
-				System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tsuccess:"+success);
-			}	
+			//if continue then go to state of the current depth back...
+			success = goToNextState(null, current_state.getWebPage().getUrl(),false);
+			System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNext()+"\tlinkToThis state:"+"\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());
 		}
 		this.crawlerInfo.appendLog(this.driver.getLog());
 		this.driver.quit();
 	}
 	
 	
-	private boolean goToNextState(Link link, String url){
+	
+	
+	private boolean goToNextState(Link link, String url, boolean process_page){
 		boolean success = true;
 		try{
 			//try to go to new state via web driver
@@ -92,15 +95,17 @@ public class WebCrawlerImpl implements WebCrawler{
 			}
 			else if(link !=null){
 				success = driver.clickElement(FindElementBy.xpath, link.getXpath(), false);
+//				driver.closeAllOtherOpenWindows();
 //				TODO if fail try with the id xpath!!!
 //				if(!success)
 //					success = driver.clickElement(FindElementBy.xpath, link.getRelativeXpath(), false);
 			}
 			//process current state if successfully manage to go there  
-			if(success){
+			if(success && process_page){
 				WebPage currentWebPage = driver.getCurrentWebPage(0, crawlerSetUp.getFRAME_TAG_NAME_LIST(), crawlerSetUp.getLINK_TAG_NAME_LIST());
 				currentWebPage.addLinkToThisWebPage(link);
 				processCurrentState(currentWebPage);
+
 			}
 		}catch(WebDriverException e){
 			crawlerInfo.appendLog(e.getMessage()+"\n");
@@ -112,31 +117,34 @@ public class WebCrawlerImpl implements WebCrawler{
 	
 	private void processCurrentState(WebPage currentWebPage) {
 		
-		
-		//2. filter the outlinks of this state based on the previous selected links and a static stop anchor text list
+		// filter the outlinks of this state based on the previous selected links and a static stop anchor text list
 		List<Link> state_links = currentWebPage.getLinks();
 		state_links = filterPreviousFollowedLinks(state_links);
 		if(!crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT().isEmpty())
 			state_links = filterStopLinksBasedOnStopAnchorTextList(state_links);
-		//3. TODO if config.keepTopNLinks from each state is set up then keep only the top N links
-		currentWebPage.setLinks(state_links);
 		
 		boolean page_is_semantic_page = true;
-		//4. TODO detect language of current page
-		//5. TODO classify web page's links, if there is link classifier
-		//6. TODO classify web page as semantic or not, if there is a page classifier
-		//7. save current web page if is semantic
-		if(page_is_semantic_page){
+		// TODO detect language of current page
+		// TODO classify web page's links, if there is link classifier
+		// TODO classify web page as semantic or not, if there is a page classifier
+		// save current web page if is semantic
+		if(page_is_semantic_page && !urlSetThatWeVisit.contains(currentWebPage.getUrl())){
 			semanticWebPageList.add(currentWebPage);
 			this.crawlerInfo.increaseByOneSemantics();
 		}
+		// increase number of unique visits
+		if(!urlSetThatWeVisit.contains(currentWebPage.getUrl()))
+			this.crawlerInfo.increaseByOneUniquePages();
 		
-		//8. set current state to current web page
+		
+		// TODO if config.keepTopNLinks from each state is set up then keep only the top N links
+		currentWebPage.setLinks(state_links);
+
+		// set current state to current web page
 		current_state = new StateImpl(currentWebPage);
-		//9. save url of current state in order not to visit again
+		// save url of current state in order not to visit again
 		urlSetThatWeVisit.add(currentWebPage.getUrl());
-		//10.increase number of unique visits
-		this.crawlerInfo.increaseByOneUniquePages();
+
 	}
 	
 	
@@ -175,5 +183,6 @@ public class WebCrawlerImpl implements WebCrawler{
 	@Override
 	public CrawlerSetUp getConfig() {
 		return crawlerSetUp;
-	}	
+	}
+	
 }

@@ -4,10 +4,13 @@ import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.Test;
 import org.webdriver.core.Driver;
 import org.webdriver.core.GhostDriver;
+import org.webdriver.domain.Link;
 import org.webdriver.domain.WebPage;
 
 import com.google.common.collect.ImmutableList;
@@ -17,7 +20,7 @@ public class CrawlerTest {
 
 	@Test
 	public void test() throws Exception {
-		int max_number_states_to_visit = 6;
+		int max_number_states_to_visit = 5;
 		int max_execution_time_seconds = 1000;
 		int max_depth = 6;
 		String seed_url = "http://didata.taleo.net/careersection/10200/joblist.ftl"; 
@@ -36,7 +39,7 @@ public class CrawlerTest {
 	            .build();
 		
 		ImmutableList<String> BLACK_LIST_ANCHOR_TEXT = new ImmutableList.Builder<String>()
-				.addAll(new ArrayList<String>())
+				.addAll(Arrays.asList("contact"))
 	            .build();
 		
 		CrawlerSetUp crawlerSetUp = new CrawlerSetUp(seed_url, max_depth, max_number_states_to_visit, max_execution_time_seconds, FRAME_TAG_NAME_LIST, LINK_TAG_NAME_LIST, BLACK_LIST_URL, BLACK_LIST_ANCHOR_TEXT); 
@@ -53,6 +56,7 @@ public class CrawlerTest {
 		System.out.println("\t"+WebCrawlerImpl.getInfo().toString());
 		System.out.println("#Crawler setup:");
 		System.out.println("\t"+WebCrawlerImpl.getConfig().toString());
+		
 		
 		
 		fail("Not yet implemented");
