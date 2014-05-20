@@ -23,7 +23,7 @@ public class CrawlerTest {
 		int max_number_states_to_visit = 5;
 		int max_execution_time_seconds = 1000;
 		int max_depth = 6;
-		String seed_url = "http://didata.taleo.net/careersection/10200/joblist.ftl"; 
+		String seed_url = "http://www.corelab.com/careers/job-search"; 
 		final String CONFIG_FILE_GHOSTDRIVER = "./config/ghostdriver/config.ini";
 		Driver ghostDriver = new GhostDriver(CONFIG_FILE_GHOSTDRIVER);
 

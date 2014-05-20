@@ -8,6 +8,8 @@ import java.util.Set;
 import org.openqa.selenium.WebDriverException;
 import org.webdriver.core.Driver;
 import org.webdriver.domain.FindElementBy;
+import org.webdriver.domain.FindFrameBy;
+import org.webdriver.domain.Frame;
 import org.webdriver.domain.Link;
 import org.webdriver.domain.WebPage;
 
@@ -26,6 +28,8 @@ public class WebCrawlerImpl implements WebCrawler{
 	private int current_depth;
 	private List<WebPage> semanticWebPageList;//the final output
 	private Set<Link> linkWeFollowHistoryList;//in order not to follow the same links
+	private Set<Frame> frameWeFollowHistoryList;//in order not to follow the same frames
+
 	private Set<String> urlSetThatWeVisit; //in order not to visit same pages..
 	
 	
@@ -37,6 +41,7 @@ public class WebCrawlerImpl implements WebCrawler{
 		this.driver = driver;
 		this.semanticWebPageList = new ArrayList<WebPage>();
 		this.linkWeFollowHistoryList = new HashSet<Link>();
+		this.frameWeFollowHistoryList = new HashSet<Frame>();
 		this.urlSetThatWeVisit = new HashSet<String>();
 		this.crawlerInfo = new CrawlerInfo();
 	}
@@ -48,24 +53,33 @@ public class WebCrawlerImpl implements WebCrawler{
 	@Override
 	public void start() {
 		//start crawling by going to the initial seed page
-		boolean success = goToNextState(null, crawlerSetUp.getSeed_url(),true);
+		boolean success = goToNextState(null, crawlerSetUp.getSeed_url(),null,true);
 		last_state_per_depth_level[current_depth] = current_state;
-		System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNext()+"\tlinkToThis state:"+"\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());
-
+		System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tframes:"+current_state.getWebPage().getFrames().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNextLink()+"\tlinkToThis state:\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());
+		
 		while(true){
 			//deep first 
-			while(current_depth <= crawlerSetUp.getMax_depth() && current_state!=null && current_state.hasNext() &&
-					urlSetThatWeVisit.size() <= this.crawlerSetUp.getMax_number_states_to_visit()){
-				Link linkToFollow = current_state.next();
-				linkWeFollowHistoryList.add(linkToFollow);
-				success = goToNextState(linkToFollow, null,true);
+			while(current_depth <= crawlerSetUp.getMax_depth() && current_state!=null && (current_state.hasNextLink() || current_state.hasNextFrame()) &&	urlSetThatWeVisit.size() <= this.crawlerSetUp.getMax_number_states_to_visit()){
+				
+				if(current_state.hasNextFrame()){
+					Frame frameToFollow = current_state.nextFrame();
+					frameWeFollowHistoryList.add(frameToFollow);
+					success = goToNextState(null, null,frameToFollow,true);	
+				}
+				else{
+					Link linkToFollow = current_state.nextLink();
+					linkWeFollowHistoryList.add(linkToFollow);
+					success = goToNextState(linkToFollow, null,null,true);	
+				}
+				
+				
 				if(success){
 					current_depth++;
 					last_state_per_depth_level[current_depth] = current_state;
-					System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNext()+"\tlinkToThis state:"+(linkToFollow!=null?linkToFollow.getText():"")+"\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());
+					System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tframes:"+current_state.getWebPage().getFrames().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNextLink()+"\tlinkToThis state:\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());
 
 				}else{
-					this.crawlerInfo.appendLog("\tFail to go to  State:"+linkToFollow.getText()+"\t"+linkToFollow.getAttributesMap().toString()+"\tlogs:"+this.driver.getLog());
+					this.crawlerInfo.appendLog("\tFail to go to  State:\tlogs:"+this.driver.getLog());
 				}
 			}
 			
@@ -73,12 +87,11 @@ public class WebCrawlerImpl implements WebCrawler{
 			current_depth = current_depth == 0 ? 0 : current_depth - 1;
 			current_state = last_state_per_depth_level[current_depth];
 			//check stopping criteria
-			if((current_depth == 0 && (current_state == null || !current_state.hasNext())) || urlSetThatWeVisit.size() >= this.crawlerSetUp.getMax_number_states_to_visit())
+			if( (current_depth == 0 && (current_state == null || (!current_state.hasNextLink() && !current_state.hasNextFrame()))) || urlSetThatWeVisit.size() >= this.crawlerSetUp.getMax_number_states_to_visit())
 				break;
 			//if continue then go to state of the current depth back...
-			success = goToNextState(null, current_state.getWebPage().getUrl(),false);
-			System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNext()+"\tlinkToThis state:"+"\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());
-		}
+			success = goToNextState(null, current_state.getWebPage().getUrl(),null,false);
+			System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tframes:"+current_state.getWebPage().getFrames().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNextLink()+"\tlinkToThis state:\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());		}
 		this.crawlerInfo.appendLog(this.driver.getLog());
 		this.driver.quit();
 	}
@@ -86,12 +99,15 @@ public class WebCrawlerImpl implements WebCrawler{
 	
 	
 	
-	private boolean goToNextState(Link link, String url, boolean process_page){
+	private boolean goToNextState(Link link, String url, Frame frame, boolean process_page){
 		boolean success = true;
 		try{
 			//try to go to new state via web driver
 			if(url != null){
 				success = driver.get(url);
+			}
+			else if(frame != null){
+				success = driver.switchToFrame(FindFrameBy.index, frame.getIndex());
 			}
 			else if(link !=null){
 				success = driver.clickElement(FindElementBy.xpath, link.getXpath(), false);
@@ -120,6 +136,11 @@ public class WebCrawlerImpl implements WebCrawler{
 		// filter the outlinks of this state based on the previous selected links and a static stop anchor text list
 		List<Link> state_links = currentWebPage.getLinks();
 		state_links = filterPreviousFollowedLinks(state_links);
+		//filter frames
+		List<Frame> state_frames = currentWebPage.getFrames();
+		state_frames = filterPreviousFollowedFrames(state_frames);
+		
+		
 		if(!crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT().isEmpty())
 			state_links = filterStopLinksBasedOnStopAnchorTextList(state_links);
 		
@@ -139,7 +160,8 @@ public class WebCrawlerImpl implements WebCrawler{
 		
 		// TODO if config.keepTopNLinks from each state is set up then keep only the top N links
 		currentWebPage.setLinks(state_links);
-
+		currentWebPage.setFrames(state_frames);
+		
 		// set current state to current web page
 		current_state = new StateImpl(currentWebPage);
 		// save url of current state in order not to visit again
@@ -157,6 +179,14 @@ public class WebCrawlerImpl implements WebCrawler{
 		return filteredLinks;
 	}
 	
+	private List<Frame> filterPreviousFollowedFrames(List<Frame> frames){
+		List<Frame> filteredFrames = new ArrayList<Frame>();
+		for(Frame frame:frames){
+			if(!frameWeFollowHistoryList.contains(frame))
+				filteredFrames.add(frame);
+		}
+		return filteredFrames;
+	}
 	
 	private List<Link> filterStopLinksBasedOnStopAnchorTextList(List<Link> links){
 		List<Link> filteredLinks = new ArrayList<Link>();
