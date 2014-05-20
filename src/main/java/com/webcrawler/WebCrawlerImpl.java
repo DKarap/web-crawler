@@ -60,7 +60,7 @@ public class WebCrawlerImpl implements WebCrawler{
 		while(true){
 			//deep first 
 			while(current_depth <= crawlerSetUp.getMax_depth() && current_state!=null && (current_state.hasNextLink() || current_state.hasNextFrame()) &&	urlSetThatWeVisit.size() <= this.crawlerSetUp.getMax_number_states_to_visit()){
-				
+				//go to next state
 				if(current_state.hasNextFrame()){
 					Frame frameToFollow = current_state.nextFrame();
 					frameWeFollowHistoryList.add(frameToFollow);
@@ -72,14 +72,10 @@ public class WebCrawlerImpl implements WebCrawler{
 					success = goToNextState(linkToFollow, null,null,true);	
 				}
 				
-				
 				if(success){
 					current_depth++;
 					last_state_per_depth_level[current_depth] = current_state;
 					System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tframes:"+current_state.getWebPage().getFrames().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNextLink()+"\tlinkToThis state:\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());
-
-				}else{
-					this.crawlerInfo.appendLog("\tFail to go to  State:\tlogs:"+this.driver.getLog());
 				}
 			}
 			
@@ -91,8 +87,9 @@ public class WebCrawlerImpl implements WebCrawler{
 				break;
 			//if continue then go to state of the current depth back...
 			success = goToNextState(null, current_state.getWebPage().getUrl(),null,false);
+			
 			System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tframes:"+current_state.getWebPage().getFrames().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNextLink()+"\tlinkToThis state:\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());		}
-		this.crawlerInfo.appendLog(this.driver.getLog());
+		this.crawlerInfo.appendLog("\n\n##Web-Driver logs:\n\n"+this.driver.getLog());
 		this.driver.quit();
 	}
 	
@@ -124,7 +121,7 @@ public class WebCrawlerImpl implements WebCrawler{
 
 			}
 		}catch(WebDriverException e){
-			crawlerInfo.appendLog(e.getMessage()+"\n");
+			crawlerInfo.appendLog("Exception durring goToNextState:"+e.getMessage()+"\n");
 			return false;
 		}
 		return success;
