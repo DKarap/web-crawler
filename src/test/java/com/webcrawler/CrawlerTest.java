@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.webdriver.core.Driver;
 import org.webdriver.core.GhostDriver;
@@ -23,7 +22,7 @@ public class CrawlerTest {
 		int max_number_states_to_visit = 2;
 		int max_execution_time_seconds = 1000;
 		int max_depth = 6;
-		String seed_url = "http://your.bosch-career.com/en/web/com/com/home/home"; 
+		String seed_url = "http://www.trifork.nl/en/home.html"; 
 		final String CONFIG_FILE_GHOSTDRIVER = "./config/ghostdriver/config.ini";
 		Driver ghostDriver = new GhostDriver(CONFIG_FILE_GHOSTDRIVER);
 		Tokenizer tokenizer = new Tokenizer(true, Helper.getFileContentLineByLine("./data/stop_words/all_stopwords.txt"));
