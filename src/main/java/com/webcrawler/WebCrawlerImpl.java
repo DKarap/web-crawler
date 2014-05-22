@@ -64,18 +64,20 @@ public class WebCrawlerImpl implements WebCrawler{
 				if(current_state.hasNextFrame()){
 					Frame frameToFollow = current_state.nextFrame();
 					frameWeFollowHistoryList.add(frameToFollow);
-					success = goToNextState(null, null,frameToFollow,true);	
+					success = goToNextState(null, null,frameToFollow,true);
+					//System.out.println("frameToFollow:"+frameToFollow.getAttributesMap().toString());
 				}
 				else{
 					Link linkToFollow = current_state.nextLink();
 					linkWeFollowHistoryList.add(linkToFollow);
-					success = goToNextState(linkToFollow, null,null,true);	
+					success = goToNextState(linkToFollow, null,null,true);
+					//System.out.println("linkToFollow:"+linkToFollow.getText()+"\t"+linkToFollow.getAttributesMap().toString());
 				}
 				//update depth and current state in current depth
 				if(success){
 					current_depth++;
 					last_state_per_depth_level[current_depth] = current_state;
-					//System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tframes:"+current_state.getWebPage().getFrames().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNextLink()+"\tlinkToThis state:\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());
+					//System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tframes:"+current_state.getWebPage().getFrames().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNextLink()+"\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());
 				}
 			}
 			
