@@ -51,9 +51,9 @@ public class WebCrawlerImpl implements WebCrawler{
 	
 
 	@Override
-	public void start() {
+	public void start(String seed_url) {
 		//start crawling by going to the initial seed page
-		boolean success = goToNextState(null, crawlerSetUp.getSeed_url(),null,true);
+		boolean success = goToNextState(null, seed_url,null,true);
 		last_state_per_depth_level[current_depth] = current_state;
 		//System.out.println("success:"+success+"\t#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tframes:"+current_state.getWebPage().getFrames().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNextLink()+"\tlinkToThis state:\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());
 		

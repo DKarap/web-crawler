@@ -47,7 +47,7 @@ public class CrawlerTest {
 				.addAll(Arrays.asList("contact"))
 	            .build();
 		
-		CrawlerSetUp crawlerSetUp = new CrawlerSetUp(seed_url, max_depth, max_number_states_to_visit, max_execution_time_seconds, FRAME_TAG_NAME_LIST, LINK_TAG_NAME_LIST, BLACK_LIST_URL, BLACK_LIST_ANCHOR_TEXT,stanfordClassifier,tokenizer); 
+		CrawlerSetUp crawlerSetUp = new CrawlerSetUp( max_depth, max_number_states_to_visit, max_execution_time_seconds, FRAME_TAG_NAME_LIST, LINK_TAG_NAME_LIST, BLACK_LIST_URL, BLACK_LIST_ANCHOR_TEXT,stanfordClassifier,tokenizer); 
 		
 		
 		
@@ -57,8 +57,8 @@ public class CrawlerTest {
 		 * Main.....
 		 */
 		WebCrawlerImpl WebCrawlerImpl = new WebCrawlerImpl(crawlerSetUp, ghostDriver);
-		WebCrawlerImpl.start();
-		
+		WebCrawlerImpl.start(seed_url);
+		WebCrawlerImpl.end();
 		
 		
 		

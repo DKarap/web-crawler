@@ -10,7 +10,7 @@ import com.webcrawler.domain.CrawlerSetUp;
 
 public interface WebCrawler {
 
-	public void start();
+	public void start(String seed_url);
 	
 	/**
 	 * close the webdriver for now

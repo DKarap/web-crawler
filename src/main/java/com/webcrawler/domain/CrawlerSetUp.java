@@ -6,7 +6,6 @@ import com.machine_learning.core.classification.Classification;
 
 public class CrawlerSetUp {	
 	
-	private final String seed_url;
 	private final int max_depth;
 	private final int max_number_states_to_visit;
 	private final int max_execution_time_seconds;
@@ -18,14 +17,13 @@ public class CrawlerSetUp {
 
 	private final Classification link_classifier;
 	
-	public CrawlerSetUp(String seed_url, int max_depth,
+	public CrawlerSetUp( int max_depth,
 			int max_number_states_to_visit, int max_execution_time_seconds,
 			ImmutableList<String> fRAME_TAG_NAME_LIST,
 			ImmutableList<String> lINK_TAG_NAME_LIST,
 			ImmutableList<String> bLACK_LIST_URL,
 			ImmutableList<String> bLACK_LIST_ANCHOR_TEXT,Classification link_classifier, Tokenizer tokenizer) {
 		super();
-		this.seed_url = seed_url;
 		this.max_depth = max_depth;
 		this.max_number_states_to_visit = max_number_states_to_visit;
 		this.max_execution_time_seconds = max_execution_time_seconds;
@@ -48,9 +46,6 @@ public class CrawlerSetUp {
 	}
 
 
-	public String getSeed_url() {
-		return seed_url;
-	}
 
 
 	public int getMax_depth() {
@@ -90,7 +85,7 @@ public class CrawlerSetUp {
 
 	@Override
 	public String toString() {
-		return "CrawlerSetUp [seed_url=" + seed_url + ", max_depth="
+		return "CrawlerSetUp [ max_depth="
 				+ max_depth + ", max_number_states_to_visit="
 				+ max_number_states_to_visit + ", max_execution_time_seconds="
 				+ max_execution_time_seconds + ", FRAME_TAG_NAME_LIST="
