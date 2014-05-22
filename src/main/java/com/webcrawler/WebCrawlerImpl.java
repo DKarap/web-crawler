@@ -91,8 +91,7 @@ public class WebCrawlerImpl implements WebCrawler{
 			success = goToNextState(null, current_state.getWebPage().getUrl(),null,false);
 			//System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tframes:"+current_state.getWebPage().getFrames().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNextLink()+"\tlinkToThis state:\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());		
 		}
-		this.crawlerInfo.appendLog("\n\n##Web-Driver logs:\n\n"+this.driver.getLog());
-		this.driver.quit();
+		this.crawlerInfo.appendLog("\n\n##Web-Driver logs:\n"+this.driver.getLog());
 	}
 	
 	
@@ -215,6 +214,11 @@ public class WebCrawlerImpl implements WebCrawler{
 	@Override
 	public CrawlerSetUp getConfig() {
 		return crawlerSetUp;
+	}
+
+	@Override
+	public void end() {
+		this.driver.quit();		
 	}
 	
 }

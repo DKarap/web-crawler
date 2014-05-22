@@ -11,7 +11,12 @@ import com.webcrawler.domain.CrawlerSetUp;
 public interface WebCrawler {
 
 	public void start();
-		
+	
+	/**
+	 * close the webdriver for now
+	 */
+	public void end();
+	
 	public List<WebPage> getSemanticWebPages();
 	
 	public CrawlerInfo getInfo();//#states visit, #semantic states, time, log
