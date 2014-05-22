@@ -57,8 +57,8 @@ public class CrawlerInfo {
 
 	@Override
 	public String toString() {
-		return "CrawlerInfo [log=" + log.toString() + ", nr_of_unique_states_visit="
-				+ nr_of_unique_states_visit + ", nr_of_semantic_states_visit="
+		return "CrawlerInfo [\nlog=" + log.toString() + ", \nnr_of_unique_states_visit="
+				+ nr_of_unique_states_visit + ", \nnr_of_semantic_states_visit="
 				+ nr_of_semantic_states_visit + "]";
 	}
 	
