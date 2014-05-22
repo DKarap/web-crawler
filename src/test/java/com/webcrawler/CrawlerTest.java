@@ -1,32 +1,38 @@
 package com.webcrawler;
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertEquals;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.webdriver.core.Driver;
 import org.webdriver.core.GhostDriver;
-import org.webdriver.domain.Link;
 import org.webdriver.domain.WebPage;
 
 import com.google.common.collect.ImmutableList;
+import com.machine_learning.core.analysis.tokenizer.Tokenizer;
+import com.machine_learning.core.classification.StanfordClassifier;
+import com.machine_learning.utils.Helper;
 import com.webcrawler.domain.CrawlerSetUp;
 
 public class CrawlerTest {
 
 	@Test
 	public void test() throws Exception {
-		int max_number_states_to_visit = 5;
+		int max_number_states_to_visit = 2;
 		int max_execution_time_seconds = 1000;
 		int max_depth = 6;
-		String seed_url = "http://www.corelab.com/careers/job-search"; 
+		String seed_url = "http://your.bosch-career.com/en/web/com/com/home/home"; 
 		final String CONFIG_FILE_GHOSTDRIVER = "./config/ghostdriver/config.ini";
 		Driver ghostDriver = new GhostDriver(CONFIG_FILE_GHOSTDRIVER);
-
+		Tokenizer tokenizer = new Tokenizer(true, Helper.getFileContentLineByLine("./data/stop_words/all_stopwords.txt"));
+		
+		String CONFIG_FILE = "./config/classification/single_field_classifier.prop";
+		String classifierFilePath = "./data/classification/link.ser.gz";
+		StanfordClassifier stanfordClassifier = new StanfordClassifier(CONFIG_FILE);
+		stanfordClassifier.loadClassifier(classifierFilePath);
+		
 		ImmutableList<String> FRAME_TAG_NAME_LIST = new ImmutableList.Builder<String>()
 				.addAll(Arrays.asList("frame","iframe"))
 	            .build();
@@ -35,19 +41,28 @@ public class CrawlerTest {
 	            .build();
 		
 		ImmutableList<String> BLACK_LIST_URL = new ImmutableList.Builder<String>()
-				.addAll(new ArrayList<String>())
+				.addAll(Arrays.asList("http://www.piedpiper.com/#hello"))
 	            .build();
 		
 		ImmutableList<String> BLACK_LIST_ANCHOR_TEXT = new ImmutableList.Builder<String>()
 				.addAll(Arrays.asList("contact"))
 	            .build();
 		
-		CrawlerSetUp crawlerSetUp = new CrawlerSetUp(seed_url, max_depth, max_number_states_to_visit, max_execution_time_seconds, FRAME_TAG_NAME_LIST, LINK_TAG_NAME_LIST, BLACK_LIST_URL, BLACK_LIST_ANCHOR_TEXT); 
+		CrawlerSetUp crawlerSetUp = new CrawlerSetUp(seed_url, max_depth, max_number_states_to_visit, max_execution_time_seconds, FRAME_TAG_NAME_LIST, LINK_TAG_NAME_LIST, BLACK_LIST_URL, BLACK_LIST_ANCHOR_TEXT,stanfordClassifier,tokenizer); 
 		
 		
 		
+		
+		
+		/**
+		 * Main.....
+		 */
 		WebCrawlerImpl WebCrawlerImpl = new WebCrawlerImpl(crawlerSetUp, ghostDriver);
 		WebCrawlerImpl.start();
+		
+		
+		
+		
 		
 		System.out.println("#Pages crawled:");
 		for(WebPage web:WebCrawlerImpl.getSemanticWebPages())
@@ -57,9 +72,7 @@ public class CrawlerTest {
 		System.out.println("#Crawler setup:");
 		System.out.println("\t"+WebCrawlerImpl.getConfig().toString());
 		
-		
-		
-		fail("Not yet implemented");
+		assertEquals("wrong nr of crawled states:",2,WebCrawlerImpl.getInfo().getNr_of_unique_states_visit());
 	}
 
 }

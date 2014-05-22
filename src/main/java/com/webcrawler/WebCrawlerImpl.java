@@ -1,6 +1,7 @@
 package com.webcrawler;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,7 +21,6 @@ public class WebCrawlerImpl implements WebCrawler{
 	
 	private final CrawlerSetUp crawlerSetUp;
 	private final Driver driver;
-
 	private CrawlerInfo crawlerInfo; 
 	
 	private StateImpl[] last_state_per_depth_level;
@@ -55,12 +55,12 @@ public class WebCrawlerImpl implements WebCrawler{
 		//start crawling by going to the initial seed page
 		boolean success = goToNextState(null, crawlerSetUp.getSeed_url(),null,true);
 		last_state_per_depth_level[current_depth] = current_state;
-		System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tframes:"+current_state.getWebPage().getFrames().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNextLink()+"\tlinkToThis state:\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());
+//		System.out.println("success:"+success+"\t#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tframes:"+current_state.getWebPage().getFrames().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNextLink()+"\tlinkToThis state:\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());
 		
 		while(true){
 			//deep first 
 			while(current_depth <= crawlerSetUp.getMax_depth() && current_state!=null && (current_state.hasNextLink() || current_state.hasNextFrame()) &&	urlSetThatWeVisit.size() <= this.crawlerSetUp.getMax_number_states_to_visit()){
-				//go to next state
+				//go to next state; priority to frames
 				if(current_state.hasNextFrame()){
 					Frame frameToFollow = current_state.nextFrame();
 					frameWeFollowHistoryList.add(frameToFollow);
@@ -71,11 +71,11 @@ public class WebCrawlerImpl implements WebCrawler{
 					linkWeFollowHistoryList.add(linkToFollow);
 					success = goToNextState(linkToFollow, null,null,true);	
 				}
-				
+				//update depth and current state in current depth
 				if(success){
 					current_depth++;
 					last_state_per_depth_level[current_depth] = current_state;
-					System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tframes:"+current_state.getWebPage().getFrames().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNextLink()+"\tlinkToThis state:\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());
+//					System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tframes:"+current_state.getWebPage().getFrames().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNextLink()+"\tlinkToThis state:\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());
 				}
 			}
 			
@@ -87,8 +87,8 @@ public class WebCrawlerImpl implements WebCrawler{
 				break;
 			//if continue then go to state of the current depth back...
 			success = goToNextState(null, current_state.getWebPage().getUrl(),null,false);
-			
-			System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tframes:"+current_state.getWebPage().getFrames().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNextLink()+"\tlinkToThis state:\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());		}
+//			System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tframes:"+current_state.getWebPage().getFrames().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNextLink()+"\tlinkToThis state:\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());		
+		}
 		this.crawlerInfo.appendLog("\n\n##Web-Driver logs:\n\n"+this.driver.getLog());
 		this.driver.quit();
 	}
@@ -108,7 +108,6 @@ public class WebCrawlerImpl implements WebCrawler{
 			}
 			else if(link !=null){
 				success = driver.clickElement(FindElementBy.xpath, link.getXpath(), false);
-//				driver.closeAllOtherOpenWindows();
 //				TODO if fail try with the id xpath!!!
 //				if(!success)
 //					success = driver.clickElement(FindElementBy.xpath, link.getRelativeXpath(), false);
@@ -118,7 +117,6 @@ public class WebCrawlerImpl implements WebCrawler{
 				WebPage currentWebPage = driver.getCurrentWebPage(0, crawlerSetUp.getFRAME_TAG_NAME_LIST(), crawlerSetUp.getLINK_TAG_NAME_LIST());
 				currentWebPage.addLinkToThisWebPage(link);
 				processCurrentState(currentWebPage);
-
 			}
 		}catch(WebDriverException e){
 			crawlerInfo.appendLog("Exception durring goToNextState:"+e.getMessage()+"\n");
@@ -129,28 +127,44 @@ public class WebCrawlerImpl implements WebCrawler{
 	
 	
 	private void processCurrentState(WebPage currentWebPage) {
+		/*
+		 * TODO Filter black list pages
+		 */
+		//if(this.crawlerSetUp.getBLACK_LIST_URL() != null && !this.crawlerSetUp.getBLACK_LIST_URL().isEmpty()){
+			
 		
+		/*
+		 * Filter Links and frames
+		 */
 		// filter the outlinks of this state based on the previous selected links and a static stop anchor text list
 		List<Link> state_links = currentWebPage.getLinks();
 		state_links = filterPreviousFollowedLinks(state_links);
 		//filter frames
 		List<Frame> state_frames = currentWebPage.getFrames();
 		state_frames = filterPreviousFollowedFrames(state_frames);
+		//TODO filter links and FRAMES that include stop anchor text, such as social network links
+//		if(!crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT().isEmpty())
+//			state_links = filterStopLinksBasedOnStopAnchorTextList(state_links);
 		
 		
-		if(!crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT().isEmpty())
-			state_links = filterStopLinksBasedOnStopAnchorTextList(state_links);
-		
-		boolean page_is_semantic_page = true;
-		// TODO detect language of current page
-		// TODO classify web page's links, if there is link classifier
-		// TODO classify web page as semantic or not, if there is a page classifier
-		// save current web page if is semantic
-		if(page_is_semantic_page && !urlSetThatWeVisit.contains(currentWebPage.getUrl())){
-			semanticWebPageList.add(currentWebPage);
-			this.crawlerInfo.increaseByOneSemantics();
+		// classify web page's links and web page, if there is link classifier
+		if(this.crawlerSetUp.getLink_classifier()!=null){
+			this.crawlerSetUp.getLink_classifier().setImportanceScoreToLinks(state_links, this.crawlerSetUp.getTokenizer());
+			Collections.sort(state_links,Link.LinkScoreComparator);
+			
+			// classify web page as semantic or not, if there is a page classifier
+			this.crawlerSetUp.getLink_classifier().classifyWebPage(currentWebPage, this.crawlerSetUp.getTokenizer());
+
+			// save current web page if is semantic
+			if(currentWebPage.getClassification().equals("1") && !urlSetThatWeVisit.contains(currentWebPage.getUrl())){
+				semanticWebPageList.add(currentWebPage);
+				this.crawlerInfo.increaseByOneSemantics();
+			}	
 		}
-		// increase number of unique visits
+		
+		
+		
+		// increase number of unique visits if is a new one
 		if(!urlSetThatWeVisit.contains(currentWebPage.getUrl()))
 			this.crawlerInfo.increaseByOneUniquePages();
 		
@@ -163,10 +177,9 @@ public class WebCrawlerImpl implements WebCrawler{
 		current_state = new StateImpl(currentWebPage);
 		// save url of current state in order not to visit again
 		urlSetThatWeVisit.add(currentWebPage.getUrl());
-
 	}
 	
-	
+
 	private List<Link> filterPreviousFollowedLinks(List<Link> links){
 		List<Link> filteredLinks = new ArrayList<Link>();
 		for(Link link:links){
@@ -180,21 +193,11 @@ public class WebCrawlerImpl implements WebCrawler{
 		List<Frame> filteredFrames = new ArrayList<Frame>();
 		for(Frame frame:frames){
 			if(!frameWeFollowHistoryList.contains(frame))
-				filteredFrames.add(frame);
+				filteredFrames.add(frame);			
 		}
 		return filteredFrames;
 	}
 	
-	private List<Link> filterStopLinksBasedOnStopAnchorTextList(List<Link> links){
-		List<Link> filteredLinks = new ArrayList<Link>();
-		for(Link link:links){
-			if(link.getText() != null && !link.getText().isEmpty()){
-				if(!crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT().contains(link.getText().toLowerCase()))
-					filteredLinks.add(link);
-			}
-		}
-		return filteredLinks;
-	}
 
 	
 	@Override

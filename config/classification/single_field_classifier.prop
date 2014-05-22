@@ -1,0 +1,58 @@
+##############################
+#Features 
+##############################
+
+1.usePrefixSuffixNGrams=true
+1.maxNGramLeng=3
+1.minNGramLeng=3
+1.splitWordShape=chris4
+
+1.useSplitWords=true			
+1.splitWordsRegexp=[,]
+
+
+#A feature, that is, an (observed,class) pair, will only be included in the model providing it is seen a minimum of this number of times in the training data.
+#featureMinimumSupport=0    
+#Include a feature for the class (as a class marginal)		The number of examples in each class is roughly balanced, so there is presumably little value in the use	ClassFeature property which puts in a feature that models the overall distribution of classes.
+useClassFeature=true 		
+
+
+##############################
+# Printing
+##############################
+#printFeatures=./data/classification/printFeatures.txt
+#printClassifier=HighWeight
+#printClassifierParam=200
+
+
+
+##############################
+# Optimization
+##############################
+#If true, (String) intern all of the (final) feature names. Recommended (this saves memory, but slows down feature generation in training).
+intern=true     
+#A parameter to several of the smoothing (i.e., regularization) methods, usually giving a degree of smoothing as a standard deviation (with small positive values being stronger smoothing, and bigger values weaker smoothing).
+sigma=3		   
+#Use Quasi-Newton optimization if true, otherwise use Conjugate Gradient optimization.
+useQN=true      
+#Number of previous iterations of Quasi-Newton to store (this increases memory use, but speeds convergence by letting the Quasi-Newton optimization more effectively approximate the second derivative).
+QNsize=15	    
+#Convergence tolerance in parameter optimization
+tolerance=1e-4	
+
+
+
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+

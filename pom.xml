@@ -87,6 +87,11 @@
       <groupId>com.webdriver</groupId>
       <artifactId>web-driver</artifactId>
       <version>1.0-SNAPSHOT</version>
-    </dependency>    
+    </dependency>
+    <dependency>
+      <groupId>com.machine_learning</groupId>
+      <artifactId>machine-learning</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>        
   </dependencies>
 </project>
