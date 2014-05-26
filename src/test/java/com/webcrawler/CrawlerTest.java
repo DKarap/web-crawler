@@ -47,7 +47,10 @@ public class CrawlerTest {
 				.addAll(Arrays.asList("contact"))
 	            .build();
 		
-		CrawlerSetUp crawlerSetUp = new CrawlerSetUp( max_depth, max_number_states_to_visit, max_execution_time_seconds, FRAME_TAG_NAME_LIST, LINK_TAG_NAME_LIST, BLACK_LIST_URL, BLACK_LIST_ANCHOR_TEXT,stanfordClassifier,tokenizer); 
+		ImmutableList<String> IMG_ATTR_WITH_TEXT_LIST = new ImmutableList.Builder<String>().addAll(Arrays.asList("alt","src","value","title","name", "id")).build();
+		
+		
+		CrawlerSetUp crawlerSetUp = new CrawlerSetUp( max_depth, max_number_states_to_visit, max_execution_time_seconds, FRAME_TAG_NAME_LIST, LINK_TAG_NAME_LIST, BLACK_LIST_URL, BLACK_LIST_ANCHOR_TEXT,IMG_ATTR_WITH_TEXT_LIST,stanfordClassifier,tokenizer); 
 		
 		
 		
