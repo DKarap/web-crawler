@@ -14,6 +14,7 @@ import org.webdriver.domain.Frame;
 import org.webdriver.domain.Link;
 import org.webdriver.domain.WebPage;
 
+import com.machine_learning.utils.Helper;
 import com.webcrawler.domain.CrawlerInfo;
 import com.webcrawler.domain.CrawlerSetUp;
 
@@ -120,7 +121,7 @@ public class WebCrawlerImpl implements WebCrawler{
 				processCurrentState(currentWebPage);
 			}
 		}catch(WebDriverException e){
-			crawlerInfo.appendLog("Exception durring goToNextState:"+e.getMessage()+"\n");
+			crawlerInfo.appendLog("Exception durring goToNextState:"+Helper.getStackTrace(e)+"\n");
 			return false;
 		}
 		return success;
