@@ -1,6 +1,7 @@
 package com.webcrawler;
 
 import java.util.List;
+import java.util.Set;
 
 import org.webdriver.domain.WebPage;
 
@@ -18,6 +19,8 @@ public interface WebCrawler {
 	public void end();
 	
 	public List<WebPage> getSemanticWebPages();
+	
+	public Set<String> getUrlSetThatWeVisited();
 	
 	public CrawlerInfo getInfo();//#states visit, #semantic states, time, log
 	

@@ -221,5 +221,14 @@ public class WebCrawlerImpl implements WebCrawler{
 	public void end() {
 		this.driver.quit();		
 	}
+
+
+
+
+
+	@Override
+	public Set<String> getUrlSetThatWeVisited() {
+		return urlSetThatWeVisit;
+	}
 	
 }
