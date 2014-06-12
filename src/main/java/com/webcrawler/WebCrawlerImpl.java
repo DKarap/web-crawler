@@ -117,7 +117,8 @@ public class WebCrawlerImpl implements WebCrawler{
 			//process current state if successfully manage to go there  
 			if(success && process_page){
 				WebPage currentWebPage = driver.getCurrentWebPage(0, crawlerSetUp.getFRAME_TAG_NAME_LIST(), crawlerSetUp.getLINK_TAG_NAME_LIST(), crawlerSetUp.getIMG_ATTR_WITH_TEXT_LIST());
-				currentWebPage.addLinkToThisWebPage(link);
+				if(link!=null)
+					currentWebPage.addLinkToThisWebPage(link);
 				processCurrentState(currentWebPage);
 			}
 		}catch(WebDriverException e){
