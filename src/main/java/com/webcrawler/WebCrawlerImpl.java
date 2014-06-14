@@ -110,9 +110,9 @@ public class WebCrawlerImpl implements WebCrawler{
 			}
 			else if(link !=null){
 				success = driver.clickElement(FindElementBy.xpath, link.getXpath(), false);
-//				TODO if fail try with the id xpath!!!
-//				if(!success)
-//					success = driver.clickElement(FindElementBy.xpath, link.getRelativeXpath(), false);
+				// if fail try with the id xpath!!!
+				if(!success && link.getXpath_by_id() != null && !link.getXpath_by_id().equals(link.getXpath()))
+					success = driver.clickElement(FindElementBy.xpath, link.getXpath_by_id(), false);
 			}
 			//process current state if successfully manage to go there  
 			if(success && process_page){
