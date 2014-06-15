@@ -156,7 +156,7 @@ public class WebCrawlerImpl implements WebCrawler{
 		filterPreviousFollowedFrames(state_frames);
 		
 		
-		//filter links and FRAMES that include stop anchor text, such as social network links
+		//filter links and FRAMES that include stop anchor href or src, such as social network links
 		if(!crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT().isEmpty()){
 			filterLinksBasedOnStopAnchorTextList(state_links);
 			filterFramesBasedOnStopAnchorTextList(state_frames);
