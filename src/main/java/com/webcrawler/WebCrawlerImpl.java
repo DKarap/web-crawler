@@ -150,10 +150,10 @@ public class WebCrawlerImpl implements WebCrawler{
 		 */
 		// filter the outlinks of this state based on the previous selected links and a static stop anchor text list
 		List<Link> state_links = currentWebPage.getLinks();
-		state_links = filterPreviousFollowedLinks(state_links);
+		filterPreviousFollowedLinks(state_links);
 		//filter frames
 		List<Frame> state_frames = currentWebPage.getFrames();
-		state_frames = filterPreviousFollowedFrames(state_frames);
+		filterPreviousFollowedFrames(state_frames);
 		
 		
 		//filter links and FRAMES that include stop anchor text, such as social network links
@@ -229,22 +229,22 @@ public class WebCrawlerImpl implements WebCrawler{
 		}
 	}
 	
-	private List<Link> filterPreviousFollowedLinks(List<Link> links){
-		List<Link> filteredLinks = new ArrayList<Link>();
-		for(Link link:links){
-			if(!linkWeFollowHistoryList.contains(link))
-				filteredLinks.add(link);
+	private void filterPreviousFollowedLinks(List<Link> links){
+		Iterator<Link> linkIter = links.iterator();
+		while(linkIter.hasNext()){
+			Link link = linkIter.next();
+			if(linkWeFollowHistoryList.contains(link))
+				linkIter.remove();
 		}
-		return filteredLinks;
 	}
 	
-	private List<Frame> filterPreviousFollowedFrames(List<Frame> frames){
-		List<Frame> filteredFrames = new ArrayList<Frame>();
-		for(Frame frame:frames){
-			if(!frameWeFollowHistoryList.contains(frame))
-				filteredFrames.add(frame);			
+	private void filterPreviousFollowedFrames(List<Frame> frames){
+		Iterator<Frame> frameIter = frames.iterator();
+		while(frameIter.hasNext()){
+			Frame frame = frameIter.next();
+			if(frameWeFollowHistoryList.contains(frame))
+				frameIter.remove();			
 		}
-		return filteredFrames;
 	}
 	
 
