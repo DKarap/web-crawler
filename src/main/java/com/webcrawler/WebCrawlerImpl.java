@@ -3,6 +3,7 @@ package com.webcrawler;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -98,8 +99,7 @@ public class WebCrawlerImpl implements WebCrawler{
 	
 	private boolean stopCrawling(){
 		long time = (System.currentTimeMillis()/1000) - startTime;
-		System.out.println("max time:"+this.crawlerSetUp.getMax_execution_time_seconds() +"\ttime:"+time);
-		if(time > this.crawlerSetUp.getMax_execution_time_seconds() || (current_depth == 0 && (current_state == null || (!current_state.hasNextLink() && !current_state.hasNextFrame()))) || urlSetThatWeVisit.size() >= this.crawlerSetUp.getMax_number_states_to_visit())
+		if( (time > this.crawlerSetUp.getMax_execution_time_seconds()) || (current_depth == 0 && (current_state == null || (!current_state.hasNextLink() && !current_state.hasNextFrame()))) || urlSetThatWeVisit.size() >= this.crawlerSetUp.getMax_number_states_to_visit())
 			return true;
 		else
 			return false;
@@ -155,9 +155,12 @@ public class WebCrawlerImpl implements WebCrawler{
 		List<Frame> state_frames = currentWebPage.getFrames();
 		state_frames = filterPreviousFollowedFrames(state_frames);
 		
-		//TODO filter links and FRAMES that include stop anchor text, such as social network links
-//		if(!crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT().isEmpty())
-//			state_links = filterLinksBasedOnStopAnchorTextList(state_links);
+		
+		//filter links and FRAMES that include stop anchor text, such as social network links
+		if(!crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT().isEmpty()){
+			filterLinksBasedOnStopAnchorTextList(state_links);
+			filterFramesBasedOnStopAnchorTextList(state_frames);
+		}
 		
 		
 		// classify web page's links and web page, if there is link classifier
@@ -191,16 +194,40 @@ public class WebCrawlerImpl implements WebCrawler{
 		// save url of current state in order not to visit again
 		urlSetThatWeVisit.add(currentWebPage.getUrl());
 	}
-	
 
-//	private List<Link> filterLinksBasedOnStopAnchorTextList(List<Link> links){
-//		Iterator<Link> linkIter = links.iterator();
-//		while(linkIter.hasNext()){
-//			Link link = linkIter.next();
-//			if(crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT().contains(link.g))
-//		}
-//		return filteredLinks;
-//	}
+	
+	
+	private void filterFramesBasedOnStopAnchorTextList(List<Frame> frames){
+		Iterator<Frame> frameIter = frames.iterator();
+		while(frameIter.hasNext()){
+			Frame frame = frameIter.next();
+			String src = frame.getAttributesMap().get("src");
+			if(src!=null){
+				src = src.toLowerCase();
+				for(String bad_text:crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT()){
+					if(src.contains(bad_text)){
+						frameIter.remove();
+					}
+				}	
+			}
+		}
+	}
+
+	private void filterLinksBasedOnStopAnchorTextList(List<Link> links){
+		Iterator<Link> linkIter = links.iterator();
+		while(linkIter.hasNext()){
+			Link link = linkIter.next();
+			String href = link.getAttributeValue("href");
+			if(href!=null){
+				href = href.toLowerCase();
+				for(String bad_text:crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT()){
+					if(href.contains(bad_text)){
+						linkIter.remove();
+					}
+				}	
+			}
+		}
+	}
 	
 	private List<Link> filterPreviousFollowedLinks(List<Link> links){
 		List<Link> filteredLinks = new ArrayList<Link>();
