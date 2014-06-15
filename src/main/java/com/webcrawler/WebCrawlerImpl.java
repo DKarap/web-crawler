@@ -33,7 +33,7 @@ public class WebCrawlerImpl implements WebCrawler{
 
 	private Set<String> urlSetThatWeVisit; //in order not to visit same pages..
 	
-	
+	private final long startTime;
 	
 	public WebCrawlerImpl(CrawlerSetUp crawlerSetUp, Driver driver) {
 		super();
@@ -45,6 +45,7 @@ public class WebCrawlerImpl implements WebCrawler{
 		this.frameWeFollowHistoryList = new HashSet<Frame>();
 		this.urlSetThatWeVisit = new HashSet<String>();
 		this.crawlerInfo = new CrawlerInfo();
+		startTime = System.currentTimeMillis()/1000;
 	}
 	
 	
@@ -86,7 +87,7 @@ public class WebCrawlerImpl implements WebCrawler{
 			current_depth = current_depth == 0 ? 0 : current_depth - 1;
 			current_state = last_state_per_depth_level[current_depth];
 			//check stopping criteria
-			if( (current_depth == 0 && (current_state == null || (!current_state.hasNextLink() && !current_state.hasNextFrame()))) || urlSetThatWeVisit.size() >= this.crawlerSetUp.getMax_number_states_to_visit())
+			if(stopCrawling())
 				break;
 			//if continue then go to state of the current depth back...
 			success = goToNextState(null, current_state.getWebPage().getUrl(),null,false);
@@ -95,6 +96,14 @@ public class WebCrawlerImpl implements WebCrawler{
 		this.crawlerInfo.appendLog("\n\n##Web-Driver logs:\n"+this.driver.getLog());
 	}
 	
+	private boolean stopCrawling(){
+		long time = (System.currentTimeMillis()/1000) - startTime;
+		System.out.println("max time:"+this.crawlerSetUp.getMax_execution_time_seconds() +"\ttime:"+time);
+		if(time > this.crawlerSetUp.getMax_execution_time_seconds() || (current_depth == 0 && (current_state == null || (!current_state.hasNextLink() && !current_state.hasNextFrame()))) || urlSetThatWeVisit.size() >= this.crawlerSetUp.getMax_number_states_to_visit())
+			return true;
+		else
+			return false;
+	}
 	
 	
 	
@@ -145,9 +154,10 @@ public class WebCrawlerImpl implements WebCrawler{
 		//filter frames
 		List<Frame> state_frames = currentWebPage.getFrames();
 		state_frames = filterPreviousFollowedFrames(state_frames);
+		
 		//TODO filter links and FRAMES that include stop anchor text, such as social network links
 //		if(!crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT().isEmpty())
-//			state_links = filterStopLinksBasedOnStopAnchorTextList(state_links);
+//			state_links = filterLinksBasedOnStopAnchorTextList(state_links);
 		
 		
 		// classify web page's links and web page, if there is link classifier
@@ -183,6 +193,15 @@ public class WebCrawlerImpl implements WebCrawler{
 	}
 	
 
+//	private List<Link> filterLinksBasedOnStopAnchorTextList(List<Link> links){
+//		Iterator<Link> linkIter = links.iterator();
+//		while(linkIter.hasNext()){
+//			Link link = linkIter.next();
+//			if(crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT().contains(link.g))
+//		}
+//		return filteredLinks;
+//	}
+	
 	private List<Link> filterPreviousFollowedLinks(List<Link> links){
 		List<Link> filteredLinks = new ArrayList<Link>();
 		for(Link link:links){
