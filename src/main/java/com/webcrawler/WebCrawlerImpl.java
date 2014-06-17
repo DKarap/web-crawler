@@ -123,6 +123,12 @@ public class WebCrawlerImpl implements WebCrawler{
 				if(!success && link.getXpath_by_id() != null && !link.getXpath_by_id().equals(link.getXpath()))
 					success = driver.clickElement(FindElementBy.xpath, link.getXpath_by_id(), false);
 			}
+			System.out.println("\n#windows:"+driver.getNumberOfOpenWindows()+" #url before switching to new wondow:"+driver.getCurrentUrl()); 
+			//go to new window if there is and close the current one.. 
+			driver.switchToNewWindow(true);
+			System.out.println("#windows:"+driver.getNumberOfOpenWindows()+" #url after switching to new wondow:"+driver.getCurrentUrl());
+			
+			
 			//process current state if successfully manage to go there  
 			if(success && process_page){
 				WebPage currentWebPage = driver.getCurrentWebPage(0, crawlerSetUp.getFRAME_TAG_NAME_LIST(), crawlerSetUp.getLINK_TAG_NAME_LIST(), crawlerSetUp.getIMG_ATTR_WITH_TEXT_LIST());
