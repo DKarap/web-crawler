@@ -68,33 +68,35 @@ public class WebCrawlerImpl implements WebCrawler{
 					Frame frameToFollow = current_state.nextFrame();
 					frameWeFollowHistoryList.add(frameToFollow);
 					success = goToNextState(null, null,frameToFollow,true);
-					//System.out.println("frameToFollow:"+frameToFollow.getAttributesMap().toString());
+					//System.out.println(success+" frameToFollow:"+frameToFollow.getAttributesMap().toString());
 				}
 				else{
 					Link linkToFollow = current_state.nextLink();
 					linkWeFollowHistoryList.add(linkToFollow);
 					success = goToNextState(linkToFollow, null,null,true);
-					//System.out.println("linkToFollow:"+linkToFollow.getText()+"\t"+linkToFollow.getAttributesMap().toString());
+					//System.out.println(success+" linkToFollow:"+linkToFollow.getText()+"\t"+linkToFollow.getAttributesMap().toString());
 				}
 				//update depth and current state in current depth
 				if(success){
 					current_depth++;
 					last_state_per_depth_level[current_depth] = current_state;
 					//System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tframes:"+current_state.getWebPage().getFrames().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNextLink()+"\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());
-				}
+				}	
+				//else we are in the same state as before to try to go to next state
 			}
-			
 			//go back one depth level, except if we are on the seed url(depth = 0)
 			current_depth = current_depth == 0 ? 0 : current_depth - 1;
 			current_state = last_state_per_depth_level[current_depth];
+
 			//check stopping criteria
 			if(stopCrawling())
 				break;
+			
 			//if continue then go to state of the current depth back...
 			success = goToNextState(null, current_state.getWebPage().getUrl(),null,false);
 			//System.out.println("#depth:"+current_depth+"\t"+current_state.getWebPage().getUrl()+"\tlinks:"+current_state.getWebPage().getLinks().size()+"\tframes:"+current_state.getWebPage().getFrames().size()+"\tsuccess:"+success+"\tcurrent_state.hasNext():"+current_state.hasNextLink()+"\tlinkToThis state:\tdriver.getNumberOfOpenWindows():"+driver.getNumberOfOpenWindows());		
 		}
-		this.crawlerInfo.appendLog("\n\n##Web-Driver logs:\n"+this.driver.getLog());
+		this.crawlerInfo.appendLog("\n\n#Web-Driver logs:\n"+this.driver.getLog());
 	}
 	
 	private boolean stopCrawling(){
@@ -123,10 +125,9 @@ public class WebCrawlerImpl implements WebCrawler{
 				if(!success && link.getXpath_by_id() != null && !link.getXpath_by_id().equals(link.getXpath()))
 					success = driver.clickElement(FindElementBy.xpath, link.getXpath_by_id(), false);
 			}
-			System.out.println("\n#windows:"+driver.getNumberOfOpenWindows()+" #url before switching to new wondow:"+driver.getCurrentUrl()); 
 			//go to new window if there is and close the current one.. 
 			driver.switchToNewWindow(true);
-			System.out.println("#windows:"+driver.getNumberOfOpenWindows()+" #url after switching to new wondow:"+driver.getCurrentUrl());
+
 			
 			
 			//process current state if successfully manage to go there  
