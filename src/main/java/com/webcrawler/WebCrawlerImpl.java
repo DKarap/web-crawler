@@ -125,6 +125,8 @@ public class WebCrawlerImpl implements WebCrawler{
 				if(!success && link.getXpath_by_id() != null && !link.getXpath_by_id().equals(link.getXpath()))
 					success = driver.clickElement(FindElementBy.xpath, link.getXpath_by_id(), false);
 			}
+			//close alerts
+			driver.closeAlerts();
 			//go to new window if there is and close the current one.. 
 			driver.switchToNewWindow(true);
 
