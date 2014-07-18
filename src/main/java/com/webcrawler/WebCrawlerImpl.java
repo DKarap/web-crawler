@@ -76,6 +76,9 @@ public class WebCrawlerImpl implements WebCrawler{
 					success = goToNextState(linkToFollow, null,null,true);
 					//System.out.println(success+" linkToFollow:"+linkToFollow.getText()+"\t"+linkToFollow.getAttributesMap().toString());
 				}
+				
+				
+				
 				//update depth and current state in current depth
 				if(success){
 					current_depth++;
@@ -216,6 +219,7 @@ public class WebCrawlerImpl implements WebCrawler{
 				for(String bad_text:crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT()){
 					if(src.contains(bad_text)){
 						frameIter.remove();
+						break;
 					}
 				}	
 			}
@@ -226,12 +230,14 @@ public class WebCrawlerImpl implements WebCrawler{
 		Iterator<Link> linkIter = links.iterator();
 		while(linkIter.hasNext()){
 			Link link = linkIter.next();
-			String href = link.getAttributeValue("href");
-			if(href!=null){
-				href = href.toLowerCase();
+			String text_to_check = link.getAttributeValue("href")!=null?link.getAttributeValue("href"):"";
+			text_to_check += link.getText()!=null ? link.getText() : "";
+			if(text_to_check!=null){
+				text_to_check = text_to_check.toLowerCase();
 				for(String bad_text:crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT()){
-					if(href.contains(bad_text)){
+					if(text_to_check.contains(bad_text)){
 						linkIter.remove();
+						break;
 					}
 				}	
 			}
