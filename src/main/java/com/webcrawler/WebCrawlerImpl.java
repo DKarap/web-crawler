@@ -180,6 +180,9 @@ public class WebCrawlerImpl implements WebCrawler{
 			this.crawlerSetUp.getLink_classifier().setImportanceScoreToLinks(state_links, this.crawlerSetUp.getTokenizer());
 			Collections.sort(state_links,Link.LinkScoreComparator);
 			
+			//set importance score to frames...
+			this.crawlerSetUp.getLink_classifier().setImportanceScoreToFrames(state_frames, this.crawlerSetUp.getTokenizer());
+			
 			// classify web page as semantic or not, if there is a page classifier
 			this.crawlerSetUp.getLink_classifier().classifyWebPage(currentWebPage, this.crawlerSetUp.getTokenizer());
 
@@ -197,9 +200,26 @@ public class WebCrawlerImpl implements WebCrawler{
 			this.crawlerInfo.increaseByOneUniquePages();
 		
 		
-		// TODO if config.keepTopNLinks from each state is set up then keep only the top N links
-		currentWebPage.setLinks(state_links);
+		//  if config.keepTopNLinks from each state is set up then keep only the top N links
+		Iterator<Link> linkIter = state_links.iterator();
+		while(linkIter.hasNext()){
+			Link currentLi = linkIter.next();
+			if(currentLi.getScore()==0.0)
+				linkIter.remove();
+		}
+		int toIndex = state_links.size() > this.crawlerSetUp.getMax_number_links_to_keep_from_a_state() ? this.crawlerSetUp.getMax_number_links_to_keep_from_a_state() : state_links.size();
+		currentWebPage.setLinks(state_links.subList(0, toIndex));
+
+		
+		//keep only the positive scored frames...
+		Iterator<Frame> frameIter = state_frames.iterator();
+		while(frameIter.hasNext()){
+			Frame currentFr = frameIter.next();
+			if(currentFr.getScore()==0.0)
+				frameIter.remove();
+		}
 		currentWebPage.setFrames(state_frames);
+		
 		
 		// set current state to current web page
 		current_state = new StateImpl(currentWebPage);

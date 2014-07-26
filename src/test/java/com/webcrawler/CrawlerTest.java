@@ -20,6 +20,7 @@ public class CrawlerTest {
 	@Test
 	public void test() throws Exception {
 		int max_number_states_to_visit = 2;
+		int max_number_links_to_keep_from_a_state =3;
 		int max_execution_time_seconds = 1000;
 		int max_depth = 6;
 		String seed_url = "http://www.trifork.nl/en/home.html"; 
@@ -50,7 +51,7 @@ public class CrawlerTest {
 		ImmutableList<String> IMG_ATTR_WITH_TEXT_LIST = new ImmutableList.Builder<String>().addAll(Arrays.asList("alt","src","value","title","name", "id")).build();
 		
 		
-		CrawlerSetUp crawlerSetUp = new CrawlerSetUp( max_depth, max_number_states_to_visit, max_execution_time_seconds, FRAME_TAG_NAME_LIST, LINK_TAG_NAME_LIST, BLACK_LIST_URL, BLACK_LIST_ANCHOR_TEXT,IMG_ATTR_WITH_TEXT_LIST,stanfordClassifier,tokenizer); 
+		CrawlerSetUp crawlerSetUp = new CrawlerSetUp( max_depth, max_number_states_to_visit, max_number_links_to_keep_from_a_state,max_execution_time_seconds, FRAME_TAG_NAME_LIST, LINK_TAG_NAME_LIST, BLACK_LIST_URL, BLACK_LIST_ANCHOR_TEXT,IMG_ATTR_WITH_TEXT_LIST,stanfordClassifier,tokenizer); 
 		
 		
 		

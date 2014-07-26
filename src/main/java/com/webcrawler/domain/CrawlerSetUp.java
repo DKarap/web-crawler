@@ -8,6 +8,7 @@ public class CrawlerSetUp {
 	
 	private final int max_depth;
 	private final int max_number_states_to_visit;
+	private final int max_number_links_to_keep_from_a_state;
 	private final int max_execution_time_seconds;
 	private final ImmutableList<String> FRAME_TAG_NAME_LIST;
 	private final ImmutableList<String> LINK_TAG_NAME_LIST;
@@ -20,7 +21,7 @@ public class CrawlerSetUp {
 	private final Classification link_classifier;
 	
 	public CrawlerSetUp( int max_depth,
-			int max_number_states_to_visit, int max_execution_time_seconds,
+			int max_number_states_to_visit,int max_number_links_to_keep_from_a_state, int max_execution_time_seconds,
 			ImmutableList<String> fRAME_TAG_NAME_LIST,
 			ImmutableList<String> lINK_TAG_NAME_LIST,
 			ImmutableList<String> bLACK_LIST_URL,
@@ -30,6 +31,7 @@ public class CrawlerSetUp {
 		super();
 		this.max_depth = max_depth;
 		this.max_number_states_to_visit = max_number_states_to_visit;
+		this.max_number_links_to_keep_from_a_state = max_number_links_to_keep_from_a_state;
 		this.max_execution_time_seconds = max_execution_time_seconds;
 		this.FRAME_TAG_NAME_LIST = fRAME_TAG_NAME_LIST;
 		this.LINK_TAG_NAME_LIST = lINK_TAG_NAME_LIST;
@@ -50,7 +52,13 @@ public class CrawlerSetUp {
 		return link_classifier;
 	}
 
+	
 
+
+
+	public int getMax_number_links_to_keep_from_a_state() {
+		return max_number_links_to_keep_from_a_state;
+	}
 
 
 	public int getMax_depth() {
