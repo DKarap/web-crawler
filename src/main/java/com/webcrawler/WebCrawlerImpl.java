@@ -170,8 +170,8 @@ public class WebCrawlerImpl implements WebCrawler{
 		
 		//filter links and FRAMES that include stop anchor href or src, such as social network links
 		if(!crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT().isEmpty()){
-			filterLinksBasedOnStopAnchorTextList(state_links);
-			filterFramesBasedOnStopAnchorTextList(state_frames);
+			Helper.filterLinksBasedOnStopAnchorTextList(state_links,crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT());
+			Helper.filterFramesBasedOnStopAnchorTextList(state_frames,crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT());
 		}
 		
 		
@@ -229,40 +229,6 @@ public class WebCrawlerImpl implements WebCrawler{
 
 	
 	
-	private void filterFramesBasedOnStopAnchorTextList(List<Frame> frames){
-		Iterator<Frame> frameIter = frames.iterator();
-		while(frameIter.hasNext()){
-			Frame frame = frameIter.next();
-			String src = frame.getAttributesMap().get("src");
-			if(src!=null){
-				src = src.toLowerCase();
-				for(String bad_text:crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT()){
-					if(src.contains(bad_text)){
-						frameIter.remove();
-						break;
-					}
-				}	
-			}
-		}
-	}
-
-	private void filterLinksBasedOnStopAnchorTextList(List<Link> links){
-		Iterator<Link> linkIter = links.iterator();
-		while(linkIter.hasNext()){
-			Link link = linkIter.next();
-			String text_to_check = link.getAttributeValue("href")!=null?link.getAttributeValue("href"):"";
-			text_to_check += link.getText()!=null ? link.getText() : "";
-			if(text_to_check!=null){
-				text_to_check = text_to_check.toLowerCase();
-				for(String bad_text:crawlerSetUp.getBLACK_LIST_ANCHOR_TEXT()){
-					if(text_to_check.contains(bad_text)){
-						linkIter.remove();
-						break;
-					}
-				}	
-			}
-		}
-	}
 	
 	private void filterPreviousFollowedLinks(List<Link> links){
 		Iterator<Link> linkIter = links.iterator();
