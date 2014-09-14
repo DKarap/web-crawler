@@ -1,5 +1,7 @@
 package com.webcrawler.domain;
 
+import java.util.List;
+
 import com.google.common.collect.ImmutableList;
 import com.machine_learning.core.analysis.tokenizer.Tokenizer;
 import com.machine_learning.core.classification.Classification;
@@ -12,7 +14,7 @@ public class CrawlerSetUp {
 	private final int max_execution_time_seconds;
 	private final ImmutableList<String> FRAME_TAG_NAME_LIST;
 	private final ImmutableList<String> LINK_TAG_NAME_LIST;
-	private final ImmutableList<String> BLACK_LIST_URL; //
+	private final List<String> BLACK_LIST_URL; //
 	private final ImmutableList<String> BLACK_LIST_ANCHOR_TEXT; //contac us
 	private final ImmutableList<String> IMG_ATTR_WITH_TEXT_LIST;
 
@@ -24,7 +26,7 @@ public class CrawlerSetUp {
 			int max_number_states_to_visit,int max_number_links_to_keep_from_a_state, int max_execution_time_seconds,
 			ImmutableList<String> fRAME_TAG_NAME_LIST,
 			ImmutableList<String> lINK_TAG_NAME_LIST,
-			ImmutableList<String> bLACK_LIST_URL,
+			List<String> bLACK_LIST_URL,
 			ImmutableList<String> bLACK_LIST_ANCHOR_TEXT,
 			ImmutableList<String> iMG_ATTR_WITH_TEXT_LIST, 
 			Classification link_classifier, Tokenizer tokenizer) {
@@ -86,7 +88,7 @@ public class CrawlerSetUp {
 	}
 
 
-	public ImmutableList<String> getBLACK_LIST_URL() {
+	public List<String> getBLACK_LIST_URL() {
 		return BLACK_LIST_URL;
 	}
 

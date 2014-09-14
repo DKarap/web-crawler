@@ -151,12 +151,7 @@ public class WebCrawlerImpl implements WebCrawler{
 	
 	
 	private void processCurrentState(WebPage currentWebPage) {
-		/*
-		 * TODO Filter black list pages
-		 */
-		//if(this.crawlerSetUp.getBLACK_LIST_URL() != null && !this.crawlerSetUp.getBLACK_LIST_URL().isEmpty()){
-			
-		
+
 		/*
 		 * Filter Links and frames
 		 */
@@ -186,8 +181,9 @@ public class WebCrawlerImpl implements WebCrawler{
 			// classify web page as semantic or not, if there is a page classifier
 			this.crawlerSetUp.getLink_classifier().classifyWebPage(currentWebPage, this.crawlerSetUp.getTokenizer());
 
-			// save current web page if is semantic
-			if(currentWebPage.getClassification().equals("1") && !urlSetThatWeVisit.contains(currentWebPage.getUrl())){
+			
+			// save current web page if is semantic and is not belong to black list urls...
+			if(currentWebPage.getClassification().equals("1") && !urlSetThatWeVisit.contains(currentWebPage.getUrl()) && (this.crawlerSetUp.getBLACK_LIST_URL() != null && !this.crawlerSetUp.getBLACK_LIST_URL().contains(currentWebPage.getUrl()))){
 				semanticWebPageList.add(currentWebPage);
 				this.crawlerInfo.increaseByOneSemantics();
 			}	
