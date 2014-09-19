@@ -203,7 +203,9 @@ public class WebCrawlerImpl implements WebCrawler{
 			if(currentLi.getScore()==0.0)
 				linkIter.remove();
 		}
-		int toIndex = state_links.size() > this.crawlerSetUp.getMax_number_links_to_keep_from_a_state() ? this.crawlerSetUp.getMax_number_links_to_keep_from_a_state() : state_links.size();
+		//for depth greater or equal to 3 set only one link to extarct
+		int nr_of_links_to_extract_from_current_state = this.current_depth >= 3 ? 1 : this.crawlerSetUp.getMax_number_links_to_keep_from_a_state();
+		int toIndex = state_links.size() > nr_of_links_to_extract_from_current_state ? nr_of_links_to_extract_from_current_state : state_links.size();
 		currentWebPage.setLinks(state_links.subList(0, toIndex));
 
 		
