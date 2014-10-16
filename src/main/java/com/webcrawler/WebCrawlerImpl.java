@@ -140,7 +140,7 @@ public class WebCrawlerImpl implements WebCrawler{
 				WebPage currentWebPage = driver.getCurrentWebPage(0, crawlerSetUp.getFRAME_TAG_NAME_LIST(), crawlerSetUp.getLINK_TAG_NAME_LIST(), crawlerSetUp.getIMG_ATTR_WITH_TEXT_LIST());
 				if(link!=null)
 					currentWebPage.addLinkToThisWebPage(link);
-				processCurrentState(currentWebPage);
+				processCurrentState(currentWebPage, link,  frame);
 			}
 		}catch(WebDriverException e){
 			crawlerInfo.appendLog("Exception durring goToNextState:"+Helper.getStackTrace(e)+"\n");
@@ -150,13 +150,13 @@ public class WebCrawlerImpl implements WebCrawler{
 	}
 	
 	
-	private void processCurrentState(WebPage currentWebPage) {
+	private void processCurrentState(WebPage currentWebPage,Link link_to_this_page, Frame frame_to_this_page) {
 
 		/*
 		 * Filter Links and frames
 		 */
 		// filter the outlinks of this state based on the previous selected links and a static stop anchor text list
-		List<Link> state_links = currentWebPage.getLinks();
+		List<Link> state_links = currentWebPage.getLinks();		
 		filterPreviousFollowedLinks(state_links);
 		//filter frames
 		List<Frame> state_frames = currentWebPage.getFrames();
@@ -181,9 +181,10 @@ public class WebCrawlerImpl implements WebCrawler{
 			// classify web page as semantic or not, if there is a page classifier
 			this.crawlerSetUp.getLink_classifier().classifyWebPage(currentWebPage, this.crawlerSetUp.getTokenizer());
 
-			
 			// save current web page if is semantic and is not belong to black list urls...
 			if(currentWebPage.getClassification().equals("1") && !urlSetThatWeVisit.contains(currentWebPage.getUrl()) && (this.crawlerSetUp.getBLACK_LIST_URL() != null && !this.crawlerSetUp.getBLACK_LIST_URL().contains(currentWebPage.getUrl()))){
+				//save to current web page the links or frame that we follow to come here..
+				savePathToThisState(currentWebPage, link_to_this_page, frame_to_this_page);
 				semanticWebPageList.add(currentWebPage);
 				this.crawlerInfo.increaseByOneSemantics();
 			}	
@@ -225,7 +226,17 @@ public class WebCrawlerImpl implements WebCrawler{
 		urlSetThatWeVisit.add(currentWebPage.getUrl());
 	}
 
-	
+	private void savePathToThisState(WebPage currentWebPage,Link link_to_this_page, Frame frame_to_this_page){
+		//save the link's xpath or 
+		if(link_to_this_page != null || frame_to_this_page != null){
+			List<String> xpaths_or_frame_index_to_this_page_list = new ArrayList<String>(current_state.getWebPage().getXpaths_or_frame_index_to_this_page());
+			if(link_to_this_page != null)
+				xpaths_or_frame_index_to_this_page_list.add(link_to_this_page.getXpath_by_id() + "\t");
+			else
+				xpaths_or_frame_index_to_this_page_list.add(frame_to_this_page.getIndex() + "\t");
+			currentWebPage.setXpaths_or_frame_index_to_this_page(xpaths_or_frame_index_to_this_page_list);
+		}
+	}
 	
 	
 	private void filterPreviousFollowedLinks(List<Link> links){
