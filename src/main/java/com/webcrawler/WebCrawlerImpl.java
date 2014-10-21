@@ -24,7 +24,7 @@ public class WebCrawlerImpl implements WebCrawler{
 	private final CrawlerSetUp crawlerSetUp;
 	private final Driver driver;
 	private CrawlerInfo crawlerInfo; 
-	
+	private String seed_url;
 	private StateImpl[] last_state_per_depth_level;
 	private StateImpl current_state;
 	private int current_depth;
@@ -55,6 +55,7 @@ public class WebCrawlerImpl implements WebCrawler{
 
 	@Override
 	public void start(String seed_url) {
+		this.seed_url = seed_url;
 		//start crawling by going to the initial seed page
 		boolean success = goToNextState(null, seed_url,null,true);
 		last_state_per_depth_level[current_depth] = current_state;
@@ -116,8 +117,8 @@ public class WebCrawlerImpl implements WebCrawler{
 		boolean success = true;
 		try{
 			//try to go to new state via web driver
-			if(url != null){
-				success = driver.get(url);
+			if(url != null){				
+				success = driver.goToWebPageViaUrlOrSeedUrl(url, this.seed_url, current_state!=null ? current_state.getWebPage().getXpaths_or_frame_index_to_this_page() : null);				
 			}
 			else if(frame != null){
 				success = driver.switchToFrame(FindFrameBy.index, frame.getIndex());
@@ -225,20 +226,26 @@ public class WebCrawlerImpl implements WebCrawler{
 		// save url of current state in order not to visit again
 		urlSetThatWeVisit.add(currentWebPage.getUrl());
 	}
-
+	
+	/**
+	 * Only for the semantic pages we save how we reach them(what links or frames we followed) 
+	 * @param currentWebPage
+	 * @param link_to_this_page
+	 * @param frame_to_this_page
+	 */
 	private void savePathToThisState(WebPage currentWebPage,Link link_to_this_page, Frame frame_to_this_page){
 		//save the link's xpath or 
 		if(link_to_this_page != null || frame_to_this_page != null){
 			List<String> xpaths_or_frame_index_to_this_page_list = new ArrayList<String>(current_state.getWebPage().getXpaths_or_frame_index_to_this_page());
 			if(link_to_this_page != null)
-				xpaths_or_frame_index_to_this_page_list.add(link_to_this_page.getXpath_by_id() + "\t");
+				xpaths_or_frame_index_to_this_page_list.add(link_to_this_page.getXpath_by_id());
 			else
-				xpaths_or_frame_index_to_this_page_list.add(frame_to_this_page.getIndex() + "\t");
+				xpaths_or_frame_index_to_this_page_list.add(Integer.toString(frame_to_this_page.getIndex()));
 			currentWebPage.setXpaths_or_frame_index_to_this_page(xpaths_or_frame_index_to_this_page_list);
 		}
 	}
 	
-	
+	//TODO replace these two functions with one...
 	private void filterPreviousFollowedLinks(List<Link> links){
 		Iterator<Link> linkIter = links.iterator();
 		while(linkIter.hasNext()){
@@ -246,8 +253,7 @@ public class WebCrawlerImpl implements WebCrawler{
 			if(linkWeFollowHistoryList.contains(link))
 				linkIter.remove();
 		}
-	}
-	
+	}	
 	private void filterPreviousFollowedFrames(List<Frame> frames){
 		Iterator<Frame> frameIter = frames.iterator();
 		while(frameIter.hasNext()){
