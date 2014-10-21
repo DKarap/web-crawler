@@ -86,12 +86,12 @@
         <dependency>
       <groupId>com.webdriver</groupId>
       <artifactId>web-driver</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>2.0</version>
     </dependency>
     <dependency>
       <groupId>com.machine_learning</groupId>
       <artifactId>machine-learning</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>2.0</version>
     </dependency>        
   </dependencies>
 </project>
