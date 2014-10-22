@@ -3,7 +3,6 @@ package com.webcrawler;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -157,11 +156,13 @@ public class WebCrawlerImpl implements WebCrawler{
 		 * Filter Links and frames
 		 */
 		// filter the outlinks of this state based on the previous selected links and a static stop anchor text list
-		List<Link> state_links = currentWebPage.getLinks();		
-		filterPreviousFollowedLinks(state_links);
-		//filter frames
+		List<Link> state_links = currentWebPage.getLinks();
+		state_links.removeIf(lk->linkWeFollowHistoryList.contains(lk));
+		//filter frames		
 		List<Frame> state_frames = currentWebPage.getFrames();
-		filterPreviousFollowedFrames(state_frames);
+		state_frames.removeIf(fr->frameWeFollowHistoryList.contains(fr));
+		
+		
 		
 		
 		//filter links and FRAMES that include stop anchor href or src, such as social network links
@@ -199,26 +200,17 @@ public class WebCrawlerImpl implements WebCrawler{
 		
 		
 		//  if config.keepTopNLinks from each state is set up then keep only the top N links
-		Iterator<Link> linkIter = state_links.iterator();
-		while(linkIter.hasNext()){
-			Link currentLi = linkIter.next();
-			if(currentLi.getScore()==0.0)
-				linkIter.remove();
-		}
+		state_links.removeIf(lk -> lk.getScore() == 0.0);
+
+		
 		//for depth greater or equal to 3 set only one link to extarct
 		int nr_of_links_to_extract_from_current_state = this.current_depth >= 3 ? 2 : this.crawlerSetUp.getMax_number_links_to_keep_from_a_state();
 		int toIndex = state_links.size() > nr_of_links_to_extract_from_current_state ? nr_of_links_to_extract_from_current_state : state_links.size();
 		currentWebPage.setLinks(state_links.subList(0, toIndex));
 
 		
-		//keep only the positive scored frames...
-		Iterator<Frame> frameIter = state_frames.iterator();
-		while(frameIter.hasNext()){
-			Frame currentFr = frameIter.next();
-			if(currentFr.getScore()==0.0)
-				frameIter.remove();
-		}
-		currentWebPage.setFrames(state_frames);
+		//keep only the positive scored frames...		
+		state_frames.removeIf(f -> f.getScore() == 0.0);
 		
 		
 		// set current state to current web page
@@ -245,23 +237,7 @@ public class WebCrawlerImpl implements WebCrawler{
 		}
 	}
 	
-	//TODO replace these two functions with one...
-	private void filterPreviousFollowedLinks(List<Link> links){
-		Iterator<Link> linkIter = links.iterator();
-		while(linkIter.hasNext()){
-			Link link = linkIter.next();
-			if(linkWeFollowHistoryList.contains(link))
-				linkIter.remove();
-		}
-	}	
-	private void filterPreviousFollowedFrames(List<Frame> frames){
-		Iterator<Frame> frameIter = frames.iterator();
-		while(frameIter.hasNext()){
-			Frame frame = frameIter.next();
-			if(frameWeFollowHistoryList.contains(frame))
-				frameIter.remove();			
-		}
-	}
+
 	
 
 	
